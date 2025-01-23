@@ -1,0 +1,576 @@
+ Sign in / up 
+ The Register® — Biting the hand that feeds IT 
+<div id="site_nav_mobile_hiding_stamp"></div>
+
+## Topics
+
+Security
+
+## Security
+
+All SecurityCyber-crimePatchesResearchCSO <a
+href="#masthead" class="subnav_elem close_box" aria-label="Top
+navigation">(X)</a>
+Off-Prem
+
+## Off-Prem
+
+All Off-PremEdge + IoTChannelPaaS + IaaSSaaS <a
+href="#masthead" class="subnav_elem close_box" aria-label="Top
+navigation">(X)</a>
+On-Prem
+
+## On-Prem
+
+All On-PremSystemsStorageNetworksHPCPersonal
+TechCxOPublic Sector <a href="#masthead" class="subnav_elem
+close_box" aria-label="Top navigation">(X)</a>
+Software
+
+## Software
+
+All SoftwareAI +
+MLApplicationsDatabasesDevOpsOSesVirtualization3
+5 <a href="#masthead" class="subnav_elem close_box" aria-label="Top
+navigation">(X)</a>
+Offbeat
+
+## Offbeat
+
+All OffbeatDebatesColumnistsScienceGeek's
+GuideBOFHLegalBootnotesSite NewsAbout Us <a
+href="#masthead" class="subnav_elem close_box" aria-label="Top
+navigation">(X)</a>
+Special Features
+
+## Special Features
+
+All Special Features The Future of the Datacenter Cybersecurity
+Month VMware Explore Cloud Infrastructure Month
+
+## Vendor Voice
+
+Vendor Voice
+
+## Vendor Voice
+
+ All Vendor Voice   Amazon Web Services (AWS) New Horizon in Cloud
+Computing   Pure Storage   Kilka Tech   HERE and AWS  
+Vonage   GE Vernova with AWS   Google Cloud Data Transformation
+  Google Gemini  <a href="#masthead" class="subnav_elem close_box"
+aria-label="Top navigation">(X)</a>
+Resources
+
+## Resources
+
+Whitepapers Webinars & Events Newsletters
+<a
+href="https://pubads.g.doubleclick.net/gampad/jump?co=1&amp;iu=/6978/reg_softwar
+e/aiml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601
+&amp;tile=2&amp;c=2Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D2%26rap
+tor%3Dcondor%26pos%3Dtop%26test%3D0" target="_blank"> <img
+src="https://pubads.g.doubleclick.net/gampad/ad?co=1&amp;iu=/6978/reg_software/a
+iml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601&am
+p;tile=2&amp;c=2Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D2%26raptor
+%3Dcondor%26pos%3Dtop%26test%3D0" alt=""> </a>
+
+#### AI + ML
+
+ **21** comment bubble on white 
+
+# Why is Big Tech hellbent on making AI opt-out?
+
+ **21** comment bubble on white 
+
+## As Microsoft, Apple, and Google switch the tech on by default, what happened
+## to asking for permission first?
+
+icon  Richard Speed 
+Thu 23 Jan 2025 // 12:30 UTC
+
+
+Opinion Copilot in Microsoft 365 and Apple Intelligence on iDevices are the
+latest examples of the tech industry's obsession with making services opt-out
+rather than opt-in.
+
+Last week, Copilot made an unsolicited appearance in Microsoft 365. This
+week, Apple turned on Apple Intelligence by default in its upcoming
+operating system releases. And it isn't easy to get through any of Google's
+services without stumbling over Gemini.
+
+Regulators worldwide are keen to ensure that marketing and similar services are
+opt-in. When dark patterns are used to steer users in one direction or
+another, lawmakers pay close attention.
+
+<a
+href="https://pubads.g.doubleclick.net/gampad/jump?co=1&amp;iu=/6978/reg_softwar
+e/aiml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601
+&amp;tile=2&amp;c=2Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D2%26rap
+tor%3Dcondor%26pos%3Dtop%26test%3D0" target="_blank"> <img
+src="https://pubads.g.doubleclick.net/gampad/ad?co=1&amp;iu=/6978/reg_software/a
+iml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601&am
+p;tile=2&amp;c=2Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D2%26raptor
+%3Dcondor%26pos%3Dtop%26test%3D0" alt=""> </a>
+
+But, for some reason, forcing AI on customers is acceptable. Rather than asking
+"we're going to shovel a load of AI services into your apps that you never asked
+for, but our investors really need you to use, is this OK?" the assumption
+instead is that users will be delighted to see their formerly pristine
+applications cluttered with AI features.
+
+<a
+href="https://pubads.g.doubleclick.net/gampad/jump?co=1&amp;iu=/6978/reg_softwar
+e/aiml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601
+&amp;tile=4&amp;c=44Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D4%26ra
+ptor%3Dfalcon%26pos%3Dmid%26test%3D0" target="_blank"> <img
+src="https://pubads.g.doubleclick.net/gampad/ad?co=1&amp;iu=/6978/reg_software/a
+iml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601&am
+p;tile=4&amp;c=44Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D426raptor
+%3Dfalcon%26pos%3Dmid%26test%3D0" alt=""> </a>
+<a
+href="https://pubads.g.doubleclick.net/gampad/jump?co=1&amp;iu=/6978/reg_softwar
+e/aiml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601
+&amp;tile=3&amp;c=33Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D3%26ra
+ptor%3Deagle%26pos%3Dmid%26test%3D0" target="_blank"> <img
+src="https://pubads.g.doubleclick.net/gampad/ad?co=1&amp;iu=/6978/reg_software/a
+iml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601&am
+p;tile=3&amp;c=33Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D3%26rapto
+r%3Deagle%26pos%3Dmid%26test%3D0" alt=""> </a>
+
+Customers, however, seem largely dissatisfied. For every study showing how users
+are delighted when presented with generative AI tools, others paint a picture of
+users regarding the technology with suspicion and some enterprises giving
+the services a wide berth.
+
+While we'd hesitate to use the word "enshittification" to describe what
+this relentless drive to ram AI down customers' throats is doing to formerly
+reliable services (take a look at the sometimes hilariously inaccurate
+summaries that now appear at the top of Google search results), it is clear
+that things are not going entirely to plan.
+
+<a
+href="https://pubads.g.doubleclick.net/gampad/jump?co=1&amp;iu=/6978/reg_softwar
+e/aiml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601
+&amp;tile=4&amp;c=44Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D4%26ra
+ptor%3Dfalcon%26pos%3Dmid%26test%3D0" target="_blank"> <img
+src="https://pubads.g.doubleclick.net/gampad/ad?co=1&amp;iu=/6978/reg_software/a
+iml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601&am
+p;tile=4&amp;c=44Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D426raptor
+%3Dfalcon%26pos%3Dmid%26test%3D0" alt=""> </a>
+
+Customers have not asked for any of this. There has been no clamoring for search
+summaries, no pent-up demand for the revival of a jumped-up Clippy. There
+is no desire to wreak further havoc on the environment to get an almost-correct
+recipe for tomato soup. And yet here we are, ready or not.
+
+This might not be what investors and shareholders want to hear, yet there needs
+to be a moratorium on adding AI services without *first* asking customers for
+consent. Despite promises of local processing and privacy-first technology, it
+is difficult to shake off the suspicion the data is being gathered for all
+manner of purposes. There would be (and has been – we're looking at you,
+Windows Recall) an outcry if spyware and keyloggers were suddenly forced
+on users, but generative AI assistants and summarizers appear to have got a free
+pass.
+
+* LinkedIn accused of training AI on private messages
+* Apple Intelligence turned on by default in upcoming macOS Sequoia 15.3, iOS
+  18.3
+* Copilot invades Microsoft 365 Personal and Family for an extra three bucks a
+  month
+* UK businesses eye AI as the cheaper, non-whining alternative to actual
+  staff
+
+Microsoft has bet an awful lot on generative AI tech, and by making Copilot
+opt-out rather than opt-in, the company can show figures to shareholders that AI
+is going swimmingly and it hasn't made a terrible, terrible mistake. The same
+applies to Apple, Google, and many others in the tech industry.
+
+This is not to deny the tangible benefits of AI. The technology works well as a
+classifier. For example, spotting potholes. As the next generation of
+autocomplete for coders, it can be useful. It's also handy when searching,
+although, let's face it, Windows Search has never been the jewel in the crown of
+Microsoft's flagship operating system.
+
+Yet turning up unbidden in productivity apps smacks of a 21st-century Clippy.
+Particularly when a hunt is required to find the setting that switches the damn
+thing off.
+
+<a
+href="https://pubads.g.doubleclick.net/gampad/jump?co=1&amp;iu=/6978/reg_softwar
+e/aiml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601
+&amp;tile=3&amp;c=33Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D3%26ra
+ptor%3Deagle%26pos%3Dmid%26test%3D0" target="_blank"> <img
+src="https://pubads.g.doubleclick.net/gampad/ad?co=1&amp;iu=/6978/reg_software/a
+iml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601&am
+p;tile=3&amp;c=33Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D3%26rapto
+r%3Deagle%26pos%3Dmid%26test%3D0" alt=""> </a>
+
+So much money is being poured in, and the AI bubble appears close to bursting.
+Perhaps the pinprick of reality which arises from actually asking what customers
+want before giving it to them is unthinkable.
+
+After all, the benevolence of the tech industry has always looked after
+customers. Nobody asked for never-ending updates, and yet here we are. Constant
+redesigns and refinements of user interfaces rarely hit the top ten lists of
+feature requests, yet customers get them anyway.
+
+Without a choice to opt in, the beatings will continue until AI adoption
+improves or users find that pesky opt-out option. ®
+
+<strong>Get our</strong> <a href="https://whitepapers.theregister.com/"
+style="text-transform:uppercase">Tech Resources</a>
+Share
+
+
+#### More about
+
+*  AI 
+*  Apple 
+*  Google 
+More like these
+×
+
+### More about
+
+*  AI 
+*  Apple 
+*  Google 
+*  Microsoft 
+
+### Narrower topics
+
+*  Active Directory 
+*  AirTag 
+*  Android 
+*  Apple M1 
+*  App stores 
+*  Azure 
+*  Bing 
+*  BSoD 
+*  Chrome 
+*  Chromium 
+*  Excel 
+*  Exchange Server 
+*  Gemini 
+*  Google AI 
+*  Google Cloud Platform 
+*  Google I/O 
+*  Google Nest 
+*  GPT-3 
+*  GPT-4 
+*  G Suite 
+*  HoloLens 
+*  iCloud 
+*  iMac 
+*  Internet Explorer 
+*  iOS 
+*  iPad 
+*  iPhone 
+*  iPod 
+*  iTunes 
+*  Kubernetes 
+*  Large Language Model 
+*  LinkedIn 
+*  Mac 
+*  MacBook 
+*  Machine Learning 
+*  MCubed 
+*  Microsoft 365 
+*  Microsoft Build 
+*  Microsoft Edge 
+*  Microsoft Fabric 
+*  Microsoft Ignite 
+*  Microsoft Office 
+*  Microsoft Surface 
+*  Microsoft Teams 
+*  .NET 
+*  Neural Networks 
+*  NLP 
+*  Office 365 
+*  OS/2 
+*  Outlook 
+*  Patch Tuesday 
+*  Pixel 
+*  Pluton 
+*  Privacy Sandbox 
+*  Safari 
+*  SharePoint 
+*  Siri 
+*  Skype 
+*  SQL Server 
+*  Star Wars 
+*  Tavis Ormandy 
+*  Tensor Processing Unit 
+*  Tim Cook 
+*  TOPS 
+*  Visual Studio 
+*  Visual Studio Code 
+*  Windows 
+*  Windows 10 
+*  Windows 11 
+*  Windows 7 
+*  Windows 8 
+*  Windows Server 
+*  Windows Server 2003 
+*  Windows Server 2008 
+*  Windows Server 2012 
+*  Windows Server 2013 
+*  Windows Server 2016 
+*  Windows Subsystem for Linux 
+*  Windows XP 
+*  Xbox 
+*  Xbox 360 
+
+### Broader topics
+
+*  Alphabet 
+*  Bill Gates 
+*  Search Engine 
+*  Self-driving Car 
+*  Steve Jobs 
+*  Steve Wozniak 
+
+#### More about
+
+Share
+
+ **21** comment bubble on white COMMENTS 
+
+#### More about
+
+*  AI 
+*  Apple 
+*  Google 
+More like these
+×
+
+### More about
+
+*  AI 
+*  Apple 
+*  Google 
+*  Microsoft 
+
+### Narrower topics
+
+*  Active Directory 
+*  AirTag 
+*  Android 
+*  Apple M1 
+*  App stores 
+*  Azure 
+*  Bing 
+*  BSoD 
+*  Chrome 
+*  Chromium 
+*  Excel 
+*  Exchange Server 
+*  Gemini 
+*  Google AI 
+*  Google Cloud Platform 
+*  Google I/O 
+*  Google Nest 
+*  GPT-3 
+*  GPT-4 
+*  G Suite 
+*  HoloLens 
+*  iCloud 
+*  iMac 
+*  Internet Explorer 
+*  iOS 
+*  iPad 
+*  iPhone 
+*  iPod 
+*  iTunes 
+*  Kubernetes 
+*  Large Language Model 
+*  LinkedIn 
+*  Mac 
+*  MacBook 
+*  Machine Learning 
+*  MCubed 
+*  Microsoft 365 
+*  Microsoft Build 
+*  Microsoft Edge 
+*  Microsoft Fabric 
+*  Microsoft Ignite 
+*  Microsoft Office 
+*  Microsoft Surface 
+*  Microsoft Teams 
+*  .NET 
+*  Neural Networks 
+*  NLP 
+*  Office 365 
+*  OS/2 
+*  Outlook 
+*  Patch Tuesday 
+*  Pixel 
+*  Pluton 
+*  Privacy Sandbox 
+*  Safari 
+*  SharePoint 
+*  Siri 
+*  Skype 
+*  SQL Server 
+*  Star Wars 
+*  Tavis Ormandy 
+*  Tensor Processing Unit 
+*  Tim Cook 
+*  TOPS 
+*  Visual Studio 
+*  Visual Studio Code 
+*  Windows 
+*  Windows 10 
+*  Windows 11 
+*  Windows 7 
+*  Windows 8 
+*  Windows Server 
+*  Windows Server 2003 
+*  Windows Server 2008 
+*  Windows Server 2012 
+*  Windows Server 2013 
+*  Windows Server 2016 
+*  Windows Subsystem for Linux 
+*  Windows XP 
+*  Xbox 
+*  Xbox 360 
+
+### Broader topics
+
+*  Alphabet 
+*  Bill Gates 
+*  Search Engine 
+*  Self-driving Car 
+*  Steve Jobs 
+*  Steve Wozniak 
+
+#### TIP US OFF
+
+Send us news
+
+### Other stories you might like
+
+
+
+#### Where does Microsoft's NPU obsession leave Nvidia's AI PC ambitions?
+
+Comment While Microsoft pushes AI PC experiences, Nvidia is busy wooing
+developers
+AI + ML20 Jan 2025  24
+ 
+
+#### Real datacenter emissions are a dirty secret
+
+Amazon doesn't break out figures, but then again neither do Microsoft nor Google
+On-Prem22 Jan 2025  7
+ 
+
+#### Apple Intelligence turned on by default in upcoming macOS Sequoia 15.3, iOS
+#### 18.3
+
+Plus: Google stuffs Gemini into Workspace, with a hidden off switch?
+AI + ML22 Jan 2025  60
+ 
+
+#### Fortify your data
+
+How cyber resilient storage hardware can defeat ransomware
+Sponsored Feature
+
+<a
+href="https://pubads.g.doubleclick.net/gampad/jump?co=1&amp;iu=/6978/reg_softwar
+e/aiml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601
+&amp;tile=6&amp;c=66Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D6%26ra
+ptor%3Dhawk%26pos%3Dbtm%26test%3D0" target="_blank"> <img
+src="https://pubads.g.doubleclick.net/gampad/ad?co=1&amp;iu=/6978/reg_software/a
+iml&amp;sz=300x50%7C300x100%7C300x250%7C300x251%7C300x252%7C300x600%7C300x601&am
+p;tile=6&amp;c=66Z5Jf4Yp0bT2mC0zlRIfkdQAAAEw&amp;t=ct%3Dns%26unitnum%3D6%26rapto
+r%3Dhawk%26pos%3Dbtm%26test%3D0" alt=""> </a>
+
+
+#### Microsoft eggheads say AI can never be made secure – after testing
+#### Redmond's own products
+
+If you want a picture of the future, imagine your infosec team stamping on
+software forever
+AI + ML17 Jan 2025  84
+ 
+
+#### Google reports halving code migration time with AI help
+
+Chocolate Factory slurps own dogfood, sheds drudgery in specific areas
+AI + ML16 Jan 2025  14
+ 
+
+#### In AI agent push, Microsoft re-orgs to create 'CoreAI – Platform and Tools'
+#### team
+
+Nad lad says 30 years of change happening in 3 years ... we're certainly feeling
+the compression of time
+AI + ML13 Jan 2025  10
+ 
+
+#### Microsoft tests 45% M365 price hikes in Asia-Pacific to see how much you
+#### enjoy AI
+
+Won’t say if other nations will be hit, but will ‘listen, learn, and improve’ as
+buyers react – so far with anger
+SaaS13 Jan 2025  125
+
+
+
+#### Brit competition watchdog takes aim at Google, Apple's mobile ecosystems
+
+CMA flexes its new Strategic Market Status muscles
+Personal Tech23 Jan 2025  6
+ 
+
+#### Apple solves broken news alerts by turning off the AI
+
+Summaries will return when Apple Intelligence has 'improved'
+AI + ML17 Jan 2025  46
+ 
+
+#### Tired of begging, Microsoft now trying to trick users into thinking Bing is
+#### Google
+
+If you can't beat 'em, just imitate their branding, hide yours and hope they
+don't notice
+Personal Tech6 Jan 2025  79
+ 
+
+#### AI spending spree continues as Microsoft commits $80B for 2025
+
+With those whopping returns who could argue with the premis... oh wait
+On-Prem6 Jan 2025  30
+
+
+The Register icon Biting the hand that feeds IT
+
+#### About Us
+
+* Contact us
+* Advertise with us
+* Who we are
+
+#### Our Websites
+
+* The Next Platform
+* DevClass
+* Blocks and Files
+
+#### Your Privacy
+
+* Cookies Policy
+* Privacy Policy
+* Ts & Cs
+ Situation Publishing 
+
+Copyright. All rights reserved © 1998–2025
+
+<img width="1" height="1" src="/Design/graphics/std/transparent_pixel.png"
+alt="no-js">
+
+/
+g/
+provements/

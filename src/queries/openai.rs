@@ -44,6 +44,22 @@ impl OpenAIChatCompletionQuery {
             },
         }
     }
+
+    pub(crate) fn system_prompt_and_content_to_messages(
+        system_prompt: &str,
+        content: &str,
+    ) -> Vec<Message> {
+        vec![
+            Message {
+                role: Role::Developer,
+                content: system_prompt.to_string(),
+            },
+            Message {
+                role: Role::User,
+                content: content.to_string(),
+            },
+        ]
+    }
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
