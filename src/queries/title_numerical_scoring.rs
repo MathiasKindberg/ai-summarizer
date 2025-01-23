@@ -94,7 +94,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_score_ai_relatedness() {
+    async fn test_numerical_title_scoring() {
         let titles = vec![
             "GitHub introduces sub-issues, issue types and advanced search".to_string(),
             "TikTok goes dark in the US".to_string(),
