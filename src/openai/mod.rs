@@ -23,11 +23,16 @@ pub(crate) enum Category {
 
 pub(crate) fn convert_titles_to_messages(
     titles: Vec<String>,
+    model: String,
     system_prompt: &str,
     response_schema: Schema,
 ) -> Vec<crate::openai::OpenAIChatCompletionQuery> {
     titles
-        .chunks(crate::config::CONFIG.title_scorer.titles_scored_per_request)
+        .chunks(
+            crate::config::config()
+                .title_scorer
+                .titles_scored_per_request,
+        )
         .map(|titles| {
             vec![
                 crate::openai::Message {
@@ -41,7 +46,11 @@ pub(crate) fn convert_titles_to_messages(
             ]
         })
         .map(|messages| {
-            crate::openai::OpenAIChatCompletionQuery::new(messages, response_schema.clone())
+            crate::openai::OpenAIChatCompletionQuery::new(
+                model.clone(),
+                messages,
+                response_schema.clone(),
+            )
         })
         .collect()
 }
@@ -54,9 +63,9 @@ pub(crate) struct OpenAIChatCompletionQuery {
 }
 
 impl OpenAIChatCompletionQuery {
-    pub(crate) fn new(messages: Vec<Message>, schema: Schema) -> Self {
+    pub(crate) fn new(model: String, messages: Vec<Message>, schema: Schema) -> Self {
         Self {
-            model: crate::config::CONFIG.title_scorer.model.clone(),
+            model,
             messages,
             response_format: ResponseFormat {
                 response_type: "json_schema".to_string(),
@@ -141,10 +150,9 @@ pub(crate) struct Choice {
     pub(crate) index: i64,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[allow(unused)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub(crate) struct Usage {
-    prompt_tokens: i64,
-    completion_tokens: i64,
-    total_tokens: i64,
+    pub(crate) prompt_tokens: i64,
+    pub(crate) completion_tokens: i64,
+    pub(crate) total_tokens: i64,
 }

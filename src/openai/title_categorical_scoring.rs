@@ -1,11 +1,14 @@
-///! Scores titles based on categories like: "High", "Medium", "Low"
+//! Scores titles based on categories like: "High", "Medium", "Low"
 
 pub(crate) async fn score_ai_impact(
     titles: Vec<String>,
 ) -> anyhow::Result<Vec<crate::openai::Category>> {
     let queries = crate::openai::convert_titles_to_messages(
         titles,
-        &crate::config::CONFIG.title_scorer.categorical_system_prompt,
+        crate::config::config().title_scorer.model.clone(),
+        &crate::config::config()
+            .title_scorer
+            .categorical_system_prompt,
         schema_for_model_response(),
     );
 
@@ -19,9 +22,9 @@ pub(crate) async fn score_ai_impact(
                 .header(reqwest::header::USER_AGENT, "test")
                 .header(
                     reqwest::header::AUTHORIZATION,
-                    format!("Bearer {}", crate::config::CONFIG.title_scorer.api_key),
+                    format!("Bearer {}", crate::config::config().title_scorer.api_key),
                 )
-                // .bearer_auth(&crate::config::CONFIG.api_key)
+                // .bearer_auth(&crate::config::config().api_key)
                 .json(&query)
                 .send()
                 .await?;

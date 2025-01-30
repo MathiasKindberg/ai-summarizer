@@ -1,7 +1,3 @@
-// struct Args {
-//     date: String,
-// }
-
 pub(crate) mod config;
 pub(crate) mod google_chat;
 pub(crate) mod hn_api;
@@ -9,7 +5,7 @@ pub(crate) mod openai;
 pub(crate) mod scraper;
 
 pub(crate) static CLIENT: std::sync::LazyLock<reqwest::Client> =
-    std::sync::LazyLock::new(|| reqwest::Client::new());
+    std::sync::LazyLock::new(reqwest::Client::new);
 
 #[derive(clap::Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -19,6 +15,9 @@ struct Args {
 
     #[arg(short, long, default_value = "false")]
     score_titles: bool,
+
+    #[arg(short, long, default_value = "false")]
+    export_text: bool,
 }
 
 #[derive(Debug, Clone, clap::ValueEnum)]
@@ -33,12 +32,11 @@ impl std::fmt::Display for Mode {
     }
 }
 
-#[derive(Debug, serde::Deserialize, Clone)]
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 struct Story {
-    #[allow(unused)]
-    by: String,
-    #[allow(unused)]
+    id: i64,
     score: i64,
+    descendants: Option<i64>,
 
     title: String,
     url: Option<String>,
@@ -49,9 +47,11 @@ struct Story {
     ai_impact_score: Option<ImpactScore>,
     text: Option<String>,
     summary: Option<Vec<String>>,
+    // Statistics
+    usage: Option<crate::openai::Usage>,
 }
 
-#[derive(Debug, serde::Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Deserialize, serde::Serialize)]
 enum ImpactScore {
     Numerical(i64),
     Categorical(crate::openai::Category),
@@ -64,42 +64,6 @@ impl std::fmt::Display for ImpactScore {
             ImpactScore::Categorical(c) => write!(f, "{}", c),
         }
     }
-}
-
-async fn get_hackernews_top_stories() -> Vec<Story> {
-    let response = CLIENT
-        .get("https://hacker-news.firebaseio.com/v0/topstories.json")
-        .send()
-        .await
-        .unwrap();
-    let stories: Vec<i64> =
-        response.json::<Vec<i64>>().await.unwrap()[..config::CONFIG.num_titles_to_request].to_vec();
-
-    // We can do this in parallel but this is good enough for now.
-    let mut enriched_stories = Vec::with_capacity(stories.len());
-
-    let mut queries_set = tokio::task::JoinSet::new();
-    for story in stories {
-        queries_set.spawn(async move {
-            CLIENT
-                .get(format!(
-                    "https://hacker-news.firebaseio.com/v0/item/{}.json",
-                    story
-                ))
-                .send()
-                .await
-                .unwrap()
-                .json::<Story>()
-                .await
-                .unwrap()
-        });
-    }
-
-    while let Some(res) = queries_set.join_next().await {
-        enriched_stories.push(res.unwrap());
-    }
-
-    enriched_stories
 }
 
 fn remove_job_adverts(stories: Vec<Story>) -> Vec<Story> {
@@ -171,7 +135,7 @@ async fn score_impact_of_categorical_stories(stories: Vec<Story>) -> Vec<Story> 
 //     stories
 //         .into_iter()
 //         .filter(|score| match score.ai_impact_score.as_ref().unwrap() {
-//             ImpactScore::Numerical(score) => score >= &config::CONFIG.min_ai_impact_score,
+//             ImpactScore::Numerical(score) => score >= &config::config().min_ai_impact_score,
 //             ImpactScore::Categorical(category) => matches!(
 //                 category,
 //                 crate::openai::Category::High | crate::openai::Category::Medium
@@ -181,26 +145,57 @@ async fn score_impact_of_categorical_stories(stories: Vec<Story>) -> Vec<Story> 
 // }
 
 async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> Vec<Story> {
+    let mut join_set: tokio::task::JoinSet<anyhow::Result<Story>> = tokio::task::JoinSet::new();
     let mut enriched_stories = Vec::with_capacity(stories.len());
 
     for story in stories {
-        let summary = crate::openai::summarizer::enrich_story(story)
-            .await
-            .unwrap();
-
-        enriched_stories.push(summary);
+        let url = story.url.clone().unwrap();
+        join_set.spawn(async move {
+            let story = crate::openai::summarizer::enrich_story(story)
+                .await?;
+            tracing::info!(title = story.title, url = url, usage =? story.usage.clone().expect("Usage"), "Scored and summarized story");
+            Ok(story)
+        });
     }
+
+    while let Some(result) = join_set.join_next().await {
+        match result.expect("JoinSet to work") {
+            Ok(story) => enriched_stories.push(story),
+            Err(e) => tracing::error!(error =? e, "Error enriching story"),
+        }
+    }
+
+    let total_usage = crate::openai::Usage {
+        prompt_tokens: enriched_stories
+            .iter()
+            .map(|s| s.usage.as_ref().expect("Usage").prompt_tokens)
+            .sum(),
+        completion_tokens: enriched_stories
+            .iter()
+            .map(|s| s.usage.as_ref().expect("Usage").completion_tokens)
+            .sum(),
+        total_tokens: enriched_stories
+            .iter()
+            .map(|s| s.usage.as_ref().expect("Usage").total_tokens)
+            .sum(),
+    };
+
+    tracing::info!(
+        num_stories = enriched_stories.len(),
+        total_usage =? total_usage,
+        "Finished enriching stories"
+    );
 
     enriched_stories
 }
 
 async fn get_summary(args: Args) {
     tracing::info!(
-        config =? config::CONFIG,
+        config =? crate::config::config(),
         args =? args,
         "Started AI summarizer"
     );
-    let stories = get_hackernews_top_stories().await;
+    let stories = hn_api::get_hackernews_top_stories().await;
 
     tracing::info!(num_stories = stories.len(), "Got top stories");
 
@@ -211,7 +206,7 @@ async fn get_summary(args: Args) {
         "Removed job adverts"
     );
 
-    let stories = scraper::enrich_stories(stories).await;
+    let stories = scraper::enrich_stories(stories, args.export_text).await;
 
     tracing::info!(
         num_scraped_stories = stories.len(),
@@ -235,21 +230,19 @@ async fn get_summary(args: Args) {
     });
     summaries.reverse();
 
-    let summaries = &summaries[..config::CONFIG.max_number_of_stories_to_present];
+    let summaries = summaries[..config::config().max_number_of_stories_to_present].to_vec();
 
-    println!("{:#?}", summaries);
+    if args.export_text {
+        let json_summaries = serde_json::to_string_pretty(&summaries).unwrap();
+        std::fs::write("src/examples/stories.json", json_summaries)
+            .expect("Failed to write to file");
+    }
 
-    // let stories = remove_low_scored_stories(stories).await;
-
-    // tracing::info!(num_stories = stories.len(), "Stories with ai impact");
-
-    // stories.iter().for_each(|story| {
-    //     println!(
-    //         "{} | {}",
-    //         story.ai_impact_score.as_ref().unwrap(),
-    //         story.title
-    //     )
-    // });
+    let message = google_chat::create_message(summaries);
+    google_chat::send_message(message, &config::config().google_chat_test_webhook_url)
+        .await
+        .expect("Failed to send message");
+    tracing::info!("Sent message to google chat")
 }
 
 #[tokio::main]
@@ -268,11 +261,4 @@ async fn main() {
     // Make sure to run program in separate task to ensure we don't hit
     // tokio main thread weirdness.
     tokio::spawn(get_summary(args)).await.unwrap();
-}
-
-#[cfg(test)]
-mod tests {
-
-    #[tokio::test]
-    async fn test_get_summary() {}
 }

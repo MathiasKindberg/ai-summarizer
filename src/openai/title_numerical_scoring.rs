@@ -1,9 +1,10 @@
-///! Scores titles based on numbers like from 0 to 10.
+//! Scores titles based on numbers like from 0 to 10.
 
 pub(crate) async fn score_ai_impact(titles: Vec<String>) -> anyhow::Result<Vec<i64>> {
     let queries = crate::openai::convert_titles_to_messages(
         titles,
-        &crate::config::CONFIG.title_scorer.numerical_system_prompt,
+        crate::config::config().title_scorer.model.clone(),
+        &crate::config::config().title_scorer.numerical_system_prompt,
         schema_for_model_response(),
     );
 
@@ -17,9 +18,9 @@ pub(crate) async fn score_ai_impact(titles: Vec<String>) -> anyhow::Result<Vec<i
                 .header(reqwest::header::USER_AGENT, "test")
                 .header(
                     reqwest::header::AUTHORIZATION,
-                    format!("Bearer {}", crate::config::CONFIG.title_scorer.api_key),
+                    format!("Bearer {}", crate::config::config().title_scorer.api_key),
                 )
-                // .bearer_auth(&crate::config::CONFIG.api_key)
+                // .bearer_auth(&crate::config::config().api_key)
                 .json(&query)
                 .send()
                 .await?;

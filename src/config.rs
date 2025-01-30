@@ -4,10 +4,11 @@ pub(crate) struct Config {
     pub(crate) summarizer: Summarizer,
     pub(crate) num_titles_to_request: usize,
     pub(crate) google_chat_test_webhook_url: String,
+    pub(crate) google_chat_webhook_url: String,
     pub(crate) max_number_of_stories_to_present: usize,
 }
 
-pub(crate) static CONFIG: std::sync::LazyLock<Config> = std::sync::LazyLock::new(|| {
+static CONFIG: std::sync::LazyLock<Config> = std::sync::LazyLock::new(|| {
     dotenvy::dotenv().expect("Failed to load .env file");
 
     Config {
@@ -20,12 +21,18 @@ pub(crate) static CONFIG: std::sync::LazyLock<Config> = std::sync::LazyLock::new
             .unwrap(),
         google_chat_test_webhook_url: std::env::var("GOOGLE_CHAT_TEST_WEBHOOK_URL")
             .expect("GOOGLE_CHAT_TEST_WEBHOOK_URL not set"),
+        google_chat_webhook_url: std::env::var("GOOGLE_CHAT_WEBHOOK_URL")
+            .expect("GOOGLE_CHAT_WEBHOOK_URL not set"),
         max_number_of_stories_to_present: std::env::var("MAX_NUMBER_OF_STORIES_TO_PRESENT")
             .expect("MAX_NUMBER_OF_STORIES_TO_PRESENT not set")
             .parse()
             .unwrap(),
     }
 });
+
+pub(crate) fn config() -> &'static Config {
+    &CONFIG
+}
 
 #[derive(Debug)]
 pub(crate) struct TitleScorer {
@@ -59,6 +66,8 @@ impl TitleScorer {
 pub(crate) struct Summarizer {
     pub(crate) api_key: String,
     pub(crate) model: String,
+
+    #[allow(unused)]
     pub(crate) numerical_system_prompt: String,
     pub(crate) categorical_system_prompt: String,
 }

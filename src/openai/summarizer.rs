@@ -1,12 +1,19 @@
-pub(crate) async fn enrich_story(story: crate::Story) -> anyhow::Result<crate::Story> {
-    let summary = summarize_and_score_text_categorical(&story.title).await?;
+pub(crate) async fn enrich_story(mut story: crate::Story) -> anyhow::Result<crate::Story> {
+    let (summary, usage) = summarize_and_score_text_categorical(&story.title).await?;
+    story.summary = Some(summary.summary);
+    story.ai_impact_score = Some(crate::ImpactScore::Categorical(summary.ai_impact));
+
+    story.usage = Some(usage);
     Ok(story)
 }
 
-async fn summarize_and_score_text_categorical(text: &str) -> anyhow::Result<SummaryResponse> {
+async fn summarize_and_score_text_categorical(
+    text: &str,
+) -> anyhow::Result<(SummaryResponse, crate::openai::Usage)> {
     let query = crate::openai::OpenAIChatCompletionQuery::new(
+        crate::config::config().summarizer.model.clone(),
         crate::openai::OpenAIChatCompletionQuery::system_prompt_and_content_to_messages(
-            &crate::config::CONFIG.summarizer.categorical_system_prompt,
+            &crate::config::config().summarizer.categorical_system_prompt,
             text,
         ),
         schema_for_summarizer_response(),
@@ -17,9 +24,9 @@ async fn summarize_and_score_text_categorical(text: &str) -> anyhow::Result<Summ
         .header(reqwest::header::USER_AGENT, "test")
         .header(
             reqwest::header::AUTHORIZATION,
-            format!("Bearer {}", crate::config::CONFIG.summarizer.api_key),
+            format!("Bearer {}", crate::config::config().summarizer.api_key),
         )
-        // .bearer_auth(&crate::config::CONFIG.api_key)
+        // .bearer_auth(&crate::config::config().api_key)
         .json(&query)
         .send()
         .await?;
@@ -32,10 +39,10 @@ async fn summarize_and_score_text_categorical(text: &str) -> anyhow::Result<Summ
     }
 
     let model_response: crate::openai::OpenAIChatCompletionResponse = response.json().await?;
-    Ok(
+    let summary =
         serde_json::from_str::<SummaryResponse>(&model_response.choices[0].message.content)
-            .unwrap(),
-    )
+            .unwrap();
+    Ok((summary, model_response.usage))
 }
 
 /// We enforce a json schema for the responses since we are working with structured data.
@@ -83,14 +90,14 @@ mod tests {
     #[tokio::test]
     async fn test_summarize_and_score_text_categorical() {
         let text = include_str!("../examples/Why-is-Big-Tech-hellbent-on-making-AI-opt-out?.txt");
-        let res = summarize_and_score_text_categorical(text).await.unwrap();
+        let (res, _) = summarize_and_score_text_categorical(text).await.unwrap();
         println!("Summary:\n{:#?}", res.summary);
         println!("Score: {}", res.ai_impact);
     }
 
     #[tokio::test]
     async fn test_summarize_should_work_with_empty_text() {
-        let res = summarize_and_score_text_categorical("").await.unwrap();
+        let (res, _) = summarize_and_score_text_categorical("").await.unwrap();
         println!("Summary: {:?}", res.summary);
         println!("Score: {}", res.ai_impact);
     }
