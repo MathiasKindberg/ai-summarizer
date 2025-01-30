@@ -1,8 +1,11 @@
-pub(crate) async fn summarize_and_score_text_categorical(
-    text: &str,
-) -> anyhow::Result<ModelResponseSchema> {
-    let query = crate::queries::openai::OpenAIChatCompletionQuery::new(
-        crate::queries::openai::OpenAIChatCompletionQuery::system_prompt_and_content_to_messages(
+pub(crate) async fn enrich_story(story: crate::Story) -> anyhow::Result<crate::Story> {
+    let summary = summarize_and_score_text_categorical(&story.title).await?;
+    Ok(story)
+}
+
+async fn summarize_and_score_text_categorical(text: &str) -> anyhow::Result<SummaryResponse> {
+    let query = crate::openai::OpenAIChatCompletionQuery::new(
+        crate::openai::OpenAIChatCompletionQuery::system_prompt_and_content_to_messages(
             &crate::config::CONFIG.summarizer.categorical_system_prompt,
             text,
         ),
@@ -14,7 +17,7 @@ pub(crate) async fn summarize_and_score_text_categorical(
         .header(reqwest::header::USER_AGENT, "test")
         .header(
             reqwest::header::AUTHORIZATION,
-            format!("Bearer {}", crate::config::CONFIG.title_scorer.api_key),
+            format!("Bearer {}", crate::config::CONFIG.summarizer.api_key),
         )
         // .bearer_auth(&crate::config::CONFIG.api_key)
         .json(&query)
@@ -28,10 +31,9 @@ pub(crate) async fn summarize_and_score_text_categorical(
         return Err(anyhow::anyhow!("Error querying model: {}", e));
     }
 
-    let model_response: crate::queries::openai::OpenAIChatCompletionResponse =
-        response.json().await?;
+    let model_response: crate::openai::OpenAIChatCompletionResponse = response.json().await?;
     Ok(
-        serde_json::from_str::<ModelResponseSchema>(&model_response.choices[0].message.content)
+        serde_json::from_str::<SummaryResponse>(&model_response.choices[0].message.content)
             .unwrap(),
     )
 }
@@ -39,18 +41,18 @@ pub(crate) async fn summarize_and_score_text_categorical(
 /// We enforce a json schema for the responses since we are working with structured data.
 #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct ModelResponseSchema {
+pub(crate) struct SummaryResponse {
     #[schemars(required)]
     #[schemars(description = "Summary of the text")]
-    summary: String,
+    pub(crate) summary: Vec<String>,
 
     #[schemars(required)]
     #[schemars(description = "An array of tuples of the form (summary, ai_impact_score)")]
-    ai_impact: crate::queries::title_categorical_scoring::Category,
+    pub(crate) ai_impact: crate::openai::Category,
 }
 
 /// Creates the json schema for the output following the OpenAI completely non-standard format...
-fn schema_for_summarizer_response() -> crate::queries::openai::Schema {
+fn schema_for_summarizer_response() -> crate::openai::Schema {
     let mut schema = schemars::generate::SchemaSettings::default()
         .for_serialize()
         .with(|s| s.meta_schema = None)
@@ -62,12 +64,12 @@ fn schema_for_summarizer_response() -> crate::queries::openai::Schema {
             },
         ))
         .into_generator()
-        .into_root_schema_for::<ModelResponseSchema>();
+        .into_root_schema_for::<SummaryResponse>();
 
     // Remove title field from schema since OpenAI api does not support it.
     schema.as_object_mut().unwrap().remove("title");
 
-    crate::queries::openai::Schema {
+    crate::openai::Schema {
         name: "ai_relatedness_scores".to_string(),
         schema: serde_json::to_value(schema).unwrap(),
         strict: true,
@@ -82,14 +84,14 @@ mod tests {
     async fn test_summarize_and_score_text_categorical() {
         let text = include_str!("../examples/Why-is-Big-Tech-hellbent-on-making-AI-opt-out?.txt");
         let res = summarize_and_score_text_categorical(text).await.unwrap();
-        println!("Summary: {}", res.summary);
+        println!("Summary:\n{:#?}", res.summary);
         println!("Score: {}", res.ai_impact);
     }
 
     #[tokio::test]
     async fn test_summarize_should_work_with_empty_text() {
         let res = summarize_and_score_text_categorical("").await.unwrap();
-        println!("Summary: {}", res.summary);
+        println!("Summary: {:?}", res.summary);
         println!("Score: {}", res.ai_impact);
     }
 

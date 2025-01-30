@@ -1,27 +1,47 @@
+pub(crate) mod summarizer;
+pub(crate) mod title_categorical_scoring;
+pub(crate) mod title_numerical_scoring;
+
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+)]
+#[serde(deny_unknown_fields)]
+pub(crate) enum Category {
+    High,
+    Medium,
+    Low,
+    Zero,
+}
+
 pub(crate) fn convert_titles_to_messages(
-    titles: &Vec<String>,
+    titles: Vec<String>,
     system_prompt: &str,
     response_schema: Schema,
-) -> Vec<crate::queries::openai::OpenAIChatCompletionQuery> {
+) -> Vec<crate::openai::OpenAIChatCompletionQuery> {
     titles
         .chunks(crate::config::CONFIG.title_scorer.titles_scored_per_request)
         .map(|titles| {
             vec![
-                crate::queries::openai::Message {
-                    role: crate::queries::openai::Role::Developer,
+                crate::openai::Message {
+                    role: crate::openai::Role::Developer,
                     content: system_prompt.to_string(),
                 },
-                crate::queries::openai::Message {
-                    role: crate::queries::openai::Role::User,
+                crate::openai::Message {
+                    role: crate::openai::Role::User,
                     content: serde_json::to_string(titles).unwrap(),
                 },
             ]
         })
         .map(|messages| {
-            crate::queries::openai::OpenAIChatCompletionQuery::new(
-                messages,
-                response_schema.clone(),
-            )
+            crate::openai::OpenAIChatCompletionQuery::new(messages, response_schema.clone())
         })
         .collect()
 }
@@ -93,11 +113,16 @@ pub(crate) struct ResponseFormat {
 // Open AI Generic Queries
 #[derive(Debug, serde::Deserialize)]
 pub(crate) struct OpenAIChatCompletionResponse {
+    #[allow(unused)]
     pub(crate) id: String,
+    #[allow(unused)]
     pub(crate) object: String,
+    #[allow(unused)]
     pub(crate) created: i64,
+    #[allow(unused)]
     pub(crate) model: String,
     pub(crate) choices: Vec<Choice>,
+    #[allow(unused)]
     pub(crate) usage: Usage,
 }
 
@@ -110,11 +135,14 @@ pub(crate) struct ResponseMessage {
 #[derive(Debug, serde::Deserialize)]
 pub(crate) struct Choice {
     pub(crate) message: ResponseMessage,
+    #[allow(unused)]
     pub(crate) finish_reason: String,
+    #[allow(unused)]
     pub(crate) index: i64,
 }
 
 #[derive(Debug, serde::Deserialize)]
+#[allow(unused)]
 pub(crate) struct Usage {
     prompt_tokens: i64,
     completion_tokens: i64,

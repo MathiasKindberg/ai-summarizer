@@ -1,14 +1,14 @@
-///! Scores titles based on categories like: "High", "Medium", "Low"
+///! Scores titles based on numbers like from 0 to 10.
 
-pub(crate) async fn score_ai_impact(titles: &Vec<String>) -> anyhow::Result<Vec<Category>> {
-    let queries = crate::queries::openai::convert_titles_to_messages(
+pub(crate) async fn score_ai_impact(titles: Vec<String>) -> anyhow::Result<Vec<i64>> {
+    let queries = crate::openai::convert_titles_to_messages(
         titles,
-        &crate::config::CONFIG.title_scorer.categorical_system_prompt,
+        &crate::config::CONFIG.title_scorer.numerical_system_prompt,
         schema_for_model_response(),
     );
 
     let mut join_set = tokio::task::JoinSet::new();
-    let mut model_responses: Vec<Category> = Vec::with_capacity(queries.len());
+    let mut model_responses: Vec<i64> = Vec::with_capacity(queries.len());
 
     for query in queries {
         join_set.spawn(async move {
@@ -31,13 +31,13 @@ pub(crate) async fn score_ai_impact(titles: &Vec<String>) -> anyhow::Result<Vec<
                 return Err(anyhow::anyhow!("Error querying model: {}", e));
             }
 
-            let model_response: crate::queries::openai::OpenAIChatCompletionResponse =
+            let model_response: crate::openai::OpenAIChatCompletionResponse =
                 response.json().await?;
             Ok(serde_json::from_str::<ModelResponseSchema>(
                 &model_response.choices[0].message.content,
             )
             .unwrap()
-            .ai_impact_score)
+            .ai_relatedness_scores)
         });
     }
 
@@ -54,7 +54,7 @@ pub(crate) async fn score_ai_impact(titles: &Vec<String>) -> anyhow::Result<Vec<
 }
 
 /// Creates the json schema for the output following the OpenAI completely non-standard format...
-fn schema_for_model_response() -> crate::queries::openai::Schema {
+fn schema_for_model_response() -> crate::openai::Schema {
     let mut schema = schemars::generate::SchemaSettings::default()
         .for_serialize()
         .with(|s| s.meta_schema = None)
@@ -71,7 +71,7 @@ fn schema_for_model_response() -> crate::queries::openai::Schema {
     // Remove title field from schema since OpenAI api does not support it.
     schema.as_object_mut().unwrap().remove("title");
 
-    crate::queries::openai::Schema {
+    crate::openai::Schema {
         name: "ai_relatedness_scores".to_string(),
         schema: serde_json::to_value(schema).unwrap(),
         strict: true,
@@ -86,27 +86,7 @@ struct ModelResponseSchema {
     #[schemars(
         description = "An array of describing the ai relatedness of the titles from 0 to 10"
     )]
-    ai_impact_score: Vec<Category>,
-}
-
-#[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub(crate) enum Category {
-    High,
-    Medium,
-    Low,
-    Zero,
-}
-
-impl std::fmt::Display for Category {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Category::High => write!(f, "High"),
-            Category::Medium => write!(f, "Medium"),
-            Category::Low => write!(f, "Low"),
-            Category::Zero => write!(f, "Zero"),
-        }
-    }
+    ai_relatedness_scores: Vec<i64>,
 }
 
 #[cfg(test)]
@@ -114,7 +94,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_categorical_scoring() {
+    async fn test_numerical_title_scoring() {
         let titles = vec![
             "GitHub introduces sub-issues, issue types and advanced search".to_string(),
             "TikTok goes dark in the US".to_string(),
@@ -122,20 +102,18 @@ mod tests {
             "Show HN: LLMpeg".to_string(),
             "DeepSeek-R1".to_string(),
             "Metacognitive laziness: Effects of generative AI on learning motivation".to_string(),
-            "Reverse engineering Call of Duty anti-cheat".to_string(),
-            "Kimi K1.5: Scaling Reinforcement Learning with LLMs".to_string(),
         ];
 
-        let res = score_ai_impact(&titles).await.unwrap();
+        let res = score_ai_impact(titles.clone()).await.unwrap();
         titles.iter().zip(res.iter()).for_each(|(title, score)| {
-            println!("{:<20}: {}", score, title);
+            println!("{:>2}: {}", score, title);
         });
         assert_eq!(res.len(), titles.len());
     }
 
     #[test]
-    fn test_categorical_schema() {
+    fn test_numerical_schema() {
         let schema = schema_for_model_response();
-        println!("{:<10}", serde_json::to_string_pretty(&schema).unwrap());
+        println!("{}", serde_json::to_string_pretty(&schema).unwrap());
     }
 }
