@@ -4,7 +4,7 @@
 pub(crate) async fn enrich_stories(
     stories: Vec<crate::Story>,
     export_text: bool,
-) -> Vec<crate::Story> {
+) -> anyhow::Result<Vec<crate::Story>> {
     let mut scraped_stories = Vec::with_capacity(stories.len());
 
     let mut queries_set: tokio::task::JoinSet<anyhow::Result<crate::Story>> =
@@ -12,7 +12,10 @@ pub(crate) async fn enrich_stories(
 
     for mut story in stories {
         queries_set.spawn(async move {
-            let raw_text = crate::scraper::scrape_text(story.url.as_ref().unwrap()).await?;
+            let raw_text = crate::scraper::scrape_text(story.url.as_ref().ok_or(
+                anyhow::anyhow!("URL not found. Title: {} Id: {}", story.title, story.id),
+            )?)
+            .await?;
             let trimmed_text = crate::scraper::html_to_trimmed_text(&raw_text)?;
 
             if export_text {
@@ -35,7 +38,7 @@ pub(crate) async fn enrich_stories(
         }
     }
 
-    scraped_stories
+    Ok(scraped_stories)
 }
 
 async fn scrape_text(url: &str) -> anyhow::Result<String> {

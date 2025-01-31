@@ -39,7 +39,9 @@ struct Story {
     descendants: Option<i64>,
 
     title: String,
+
     url: Option<String>,
+
     #[serde(rename = "type")]
     story_type: String,
 
@@ -47,6 +49,7 @@ struct Story {
     ai_impact_score: Option<ImpactScore>,
     text: Option<String>,
     summary: Option<Vec<String>>,
+
     // Statistics
     usage: Option<crate::openai::Usage>,
 }
@@ -71,6 +74,10 @@ fn remove_job_adverts(stories: Vec<Story>) -> Vec<Story> {
         .into_iter()
         .filter(|s| s.story_type != "job")
         .collect()
+}
+
+fn remove_stories_without_url(stories: Vec<Story>) -> Vec<Story> {
+    stories.into_iter().filter(|s| s.url.is_some()).collect()
 }
 
 async fn score_impact_of_numerical_stories(stories: Vec<Story>) -> Vec<Story> {
@@ -112,37 +119,6 @@ async fn score_impact_of_categorical_stories(stories: Vec<Story>) -> Vec<Story> 
         })
         .collect()
 }
-
-// async fn remove_low_scored_stories(stories: Vec<Story>) -> Vec<Story> {
-//     let impact_and_title: Vec<(String, &String)> = stories
-//         .iter()
-//         .map(|story| {
-//             (
-//                 match story.ai_impact_score.as_ref().unwrap() {
-//                     ImpactScore::Numerical(score) => score.to_string(),
-//                     ImpactScore::Categorical(score) => format!("{:?}", score),
-//                 },
-//                 &story.title,
-//             )
-//         })
-//         .collect();
-
-//     println!("Impact | Title");
-//     impact_and_title
-//         .iter()
-//         .for_each(|(impact, title)| println!("{:>3} | {}", impact, title));
-
-//     stories
-//         .into_iter()
-//         .filter(|score| match score.ai_impact_score.as_ref().unwrap() {
-//             ImpactScore::Numerical(score) => score >= &config::config().min_ai_impact_score,
-//             ImpactScore::Categorical(category) => matches!(
-//                 category,
-//                 crate::openai::Category::High | crate::openai::Category::Medium
-//             ),
-//         })
-//         .collect()
-// }
 
 async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> Vec<Story> {
     let mut join_set: tokio::task::JoinSet<anyhow::Result<Story>> = tokio::task::JoinSet::new();
@@ -195,7 +171,9 @@ async fn get_summary(args: Args) {
         args =? args,
         "Started AI summarizer"
     );
-    let stories = hn_api::get_hackernews_top_stories().await;
+    let stories = hn_api::get_hackernews_top_stories()
+        .await
+        .expect("Failed to get top stories");
 
     tracing::info!(num_stories = stories.len(), "Got top stories");
 
@@ -206,7 +184,16 @@ async fn get_summary(args: Args) {
         "Removed job adverts"
     );
 
-    let stories = scraper::enrich_stories(stories, args.export_text).await;
+    let num_stories = stories.len();
+    let stories = remove_stories_without_url(stories);
+    tracing::info!(
+        num_stories_without_url_removed = num_stories - stories.len(),
+        "Removed stories without url"
+    );
+
+    let stories = scraper::enrich_stories(stories, args.export_text)
+        .await
+        .expect("Failed to enrich stories");
 
     tracing::info!(
         num_scraped_stories = stories.len(),
