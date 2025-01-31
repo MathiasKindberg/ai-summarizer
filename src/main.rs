@@ -1,4 +1,5 @@
 pub(crate) mod config;
+pub(crate) mod db;
 pub(crate) mod google_chat;
 pub(crate) mod hn_api;
 pub(crate) mod openai;
@@ -18,6 +19,9 @@ struct Args {
 
     #[arg(short, long, default_value = "false")]
     export_text: bool,
+
+    #[arg(short, long, default_value = "false")]
+    reset: bool,
 }
 
 #[derive(Debug, Clone, clap::ValueEnum)]
@@ -171,6 +175,17 @@ async fn get_summary(args: Args) {
         args =? args,
         "Started AI summarizer"
     );
+
+    let db = db::open_db(args.reset);
+
+    tracing::info!("Database opened");
+    let processed_stories: Vec<i64> = db::get_processed_stories(&db);
+
+    tracing::info!(
+        num_processed_stories = processed_stories.len(),
+        "Got already processed stories"
+    );
+
     let stories = hn_api::get_hackernews_top_stories()
         .await
         .expect("Failed to get top stories");
@@ -191,6 +206,17 @@ async fn get_summary(args: Args) {
         "Removed stories without url"
     );
 
+    let num_stories = stories.len();
+    let stories: Vec<_> = stories
+        .into_iter()
+        .filter(|s| !processed_stories.contains(&s.id))
+        .collect();
+
+    tracing::info!(
+        num_stories_filtered_out = num_stories - stories.len(),
+        "Filtered out already processed stories"
+    );
+
     let stories = scraper::enrich_stories(stories, args.export_text)
         .await
         .expect("Failed to enrich stories");
@@ -207,29 +233,40 @@ async fn get_summary(args: Args) {
         };
     }
 
-    let mut summaries = summarize_and_score_scraped_stories(stories).await;
+    let mut stories = summarize_and_score_scraped_stories(stories).await;
 
-    summaries.sort_by(|a, b| {
+    stories.sort_by(|a, b| {
         b.ai_impact_score
             .as_ref()
             .unwrap()
             .cmp(a.ai_impact_score.as_ref().unwrap())
     });
-    summaries.reverse();
+    stories.reverse();
 
-    let summaries = summaries[..config::config().max_number_of_stories_to_present].to_vec();
+    let stories = stories[..config::config()
+        .max_number_of_stories_to_present
+        .min(stories.len())]
+        .to_vec();
+
+    if stories.is_empty() {
+        tracing::info!("No stories to present");
+        return;
+    }
 
     if args.export_text {
-        let json_summaries = serde_json::to_string_pretty(&summaries).unwrap();
+        let json_summaries = serde_json::to_string_pretty(&stories).unwrap();
         std::fs::write("src/examples/stories.json", json_summaries)
             .expect("Failed to write to file");
     }
 
-    let message = google_chat::create_message(summaries);
+    let message = google_chat::create_message(stories.clone());
     google_chat::send_message(message, &config::config().google_chat_test_webhook_url)
         .await
         .expect("Failed to send message");
-    tracing::info!("Sent message to google chat")
+    tracing::info!("Sent message to google chat");
+
+    db::insert_stories(&db, stories);
+    tracing::info!("Inserted stories into db");
 }
 
 #[tokio::main]

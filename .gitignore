@@ -2,3 +2,4 @@
 .env
 /.rust-analyzer
 /tmp
+db.sqlite
