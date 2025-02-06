@@ -24,7 +24,7 @@ COPY --from=builder /etc/group /etc/group
 
 WORKDIR /ai-summarizer
 
-COPY --from=builder /ai-summarizer/target/x86_64-unknown-linux-musl/release/ai-summarizer ./
+COPY --from=builder /ai-summarizer/target/release/ai-summarizer ./
 
-USER ai-summarizer:ai-summarizer
+
 CMD ["./ai-summarizer"]

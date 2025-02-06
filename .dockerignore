@@ -1,1 +1,5 @@
 target
+.git
+.github
+.rust-analyzer
+db.sqlite

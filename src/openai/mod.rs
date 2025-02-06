@@ -1,6 +1,4 @@
 pub(crate) mod summarizer;
-pub(crate) mod title_categorical_scoring;
-pub(crate) mod title_numerical_scoring;
 
 #[derive(
     Debug,
@@ -21,38 +19,15 @@ pub(crate) enum Category {
     Zero,
 }
 
-pub(crate) fn convert_titles_to_messages(
-    titles: Vec<String>,
-    model: String,
-    system_prompt: &str,
-    response_schema: Schema,
-) -> Vec<crate::openai::OpenAIChatCompletionQuery> {
-    titles
-        .chunks(
-            crate::config::config()
-                .title_scorer
-                .titles_scored_per_request,
-        )
-        .map(|titles| {
-            vec![
-                crate::openai::Message {
-                    role: crate::openai::Role::Developer,
-                    content: system_prompt.to_string(),
-                },
-                crate::openai::Message {
-                    role: crate::openai::Role::User,
-                    content: serde_json::to_string(titles).unwrap(),
-                },
-            ]
-        })
-        .map(|messages| {
-            crate::openai::OpenAIChatCompletionQuery::new(
-                model.clone(),
-                messages,
-                response_schema.clone(),
-            )
-        })
-        .collect()
+impl std::fmt::Display for crate::openai::Category {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            crate::openai::Category::High => write!(f, "High"),
+            crate::openai::Category::Medium => write!(f, "Medium"),
+            crate::openai::Category::Low => write!(f, "Low"),
+            crate::openai::Category::Zero => write!(f, "Zero"),
+        }
+    }
 }
 
 #[derive(Debug, serde::Serialize)]

@@ -15,9 +15,6 @@ struct Args {
     mode: Mode,
 
     #[arg(short, long, default_value = "false")]
-    score_titles: bool,
-
-    #[arg(short, long, default_value = "false")]
     export_text: bool,
 
     #[arg(short, long, default_value = "false")]
@@ -87,45 +84,6 @@ fn remove_stories_without_url(stories: Vec<Story>) -> Vec<Story> {
     stories.into_iter().filter(|s| s.url.is_some()).collect()
 }
 
-async fn score_impact_of_numerical_stories(stories: Vec<Story>) -> Vec<Story> {
-    let titles = stories
-        .iter()
-        .map(|s| s.title.clone())
-        .collect::<Vec<String>>();
-
-    let ai_impact_scores = crate::openai::title_numerical_scoring::score_ai_impact(titles)
-        .await
-        .unwrap();
-
-    stories
-        .into_iter()
-        .zip(ai_impact_scores.into_iter())
-        .map(|(mut story, score)| {
-            story.ai_impact_score = Some(ImpactScore::Numerical(score));
-            story
-        })
-        .collect()
-}
-
-async fn score_impact_of_categorical_stories(stories: Vec<Story>) -> Vec<Story> {
-    let titles = stories
-        .iter()
-        .map(|s| s.title.clone())
-        .collect::<Vec<String>>();
-
-    let ai_impact_scores = crate::openai::title_categorical_scoring::score_ai_impact(titles)
-        .await
-        .unwrap();
-
-    stories
-        .into_iter()
-        .zip(ai_impact_scores.into_iter())
-        .map(|(mut story, score)| {
-            story.ai_impact_score = Some(ImpactScore::Categorical(score));
-            story
-        })
-        .collect()
-}
 
 async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> Vec<Story> {
     let mut join_set: tokio::task::JoinSet<anyhow::Result<Story>> = tokio::task::JoinSet::new();
@@ -223,12 +181,6 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
         "Finished scraping stories"
     );
 
-    if args.score_titles {
-        let _ = match args.mode {
-            Mode::Categorical => score_impact_of_categorical_stories(stories.clone()).await,
-            Mode::Numerical => score_impact_of_numerical_stories(stories.clone()).await,
-        };
-    }
 
     let mut stories = summarize_and_score_scraped_stories(stories).await;
 
