@@ -16,13 +16,12 @@ static CONFIG: std::sync::LazyLock<Config> = std::sync::LazyLock::new(|| {
 
     Config {
         summarizer: Summarizer::new(),
-
         num_titles_to_request: std::env::var("NUM_TITLES_TO_REQUEST")
             .unwrap_or("60".to_string())
             .parse()
             .unwrap(),
-        google_chat_webhook_url: std::env::var("GOOGLE_CHAT_TEST_WEBHOOK_URL")
-            .expect("GOOGLE_CHAT_TEST_WEBHOOK_URL not set"),
+        google_chat_webhook_url: std::env::var("GOOGLE_CHAT_WEBHOOK_URL")
+            .expect("GOOGLE_CHAT_WEBHOOK_URL not set"),
         max_number_of_stories_to_present: std::env::var("MAX_NUMBER_OF_STORIES_TO_PRESENT")
             .unwrap_or("5".to_string())
             .parse()
@@ -39,23 +38,15 @@ pub(crate) fn config() -> &'static Config {
 pub(crate) struct Summarizer {
     pub(crate) api_key: String,
     pub(crate) model: String,
-
-    #[allow(unused)]
-    pub(crate) numerical_system_prompt: String,
-    pub(crate) categorical_system_prompt: String,
+    pub(crate) system_prompt: String,
 }
 
 impl Summarizer {
     fn new() -> Self {
         Self {
-            api_key: std::env::var("OPENAI_SUMMARIZER_API_KEY")
-                .expect("OPENAI_SUMMARIZER_API_KEY not set"),
-            model: std::env::var("OPENAI_SUMMARIZER_MODEL")
-                .expect("OPENAI_SUMMARIZER_MODEL not set"),
-            numerical_system_prompt: std::env::var("SUMMARIZER_NUMERICAL_SYSTEM_PROMPT")
-                .expect("SUMMARIZER_NUMERICAL_SYSTEM_PROMPT not set"),
-            categorical_system_prompt: std::env::var("SUMMARIZER_CATEGORICAL_SYSTEM_PROMPT")
-                .expect("SUMMARIZER_CATEGORICAL_SYSTEM_PROMPT not set"),
+            api_key: std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY not set"),
+            model: std::env::var("OPENAI_MODEL").expect("OPENAI_MODEL not set"),
+            system_prompt: std::env::var("SYSTEM_PROMPT").expect("SYSTEM_PROMPT not set"),
         }
     }
 }

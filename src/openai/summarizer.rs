@@ -13,7 +13,7 @@ async fn summarize_and_score_text_categorical(
     let query = crate::openai::OpenAIChatCompletionQuery::new(
         crate::config::config().summarizer.model.clone(),
         crate::openai::OpenAIChatCompletionQuery::system_prompt_and_content_to_messages(
-            &crate::config::config().summarizer.categorical_system_prompt,
+            &crate::config::config().summarizer.system_prompt,
             text,
         ),
         schema_for_summarizer_response(),
