@@ -24,12 +24,12 @@ fn story_to_message(story: &crate::Story) -> String {
         .as_ref()
         .expect("summary to be set")
         .iter()
-        .map(|s| format!("- {s}"))
+        .map(|s| format!("{s}"))
         .collect::<Vec<String>>()
-        .join("\n");
+        .join("\n\n");
 
     format!(
-        "*<{url}|{title}>*\nAI Impact: {ai_impact_score} | Score: {score} | <https://news.ycombinator.com/item?id={id}|{descendents} Comments> \n{summary}\n\n"
+        "*<{url}|{title}>*\nAI Impact: {ai_impact_score} | Votes: {score} | <https://news.ycombinator.com/item?id={id}|{descendents} Comments> \n\n{summary}\n\n"
     )
 }
 

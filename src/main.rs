@@ -8,7 +8,7 @@ pub(crate) mod scraper;
 pub(crate) static CLIENT: std::sync::LazyLock<reqwest::Client> =
     std::sync::LazyLock::new(reqwest::Client::new);
 
-#[derive(clap::Parser, Debug)]
+#[derive(Debug, Clone, clap::Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
     #[arg(short, long, default_value = "categorical")]
@@ -22,6 +22,9 @@ struct Args {
 
     #[arg(short, long, default_value = "false")]
     reset: bool,
+
+    #[arg(short, long, default_value = "false")]
+    no_cron: bool,
 }
 
 #[derive(Debug, Clone, clap::ValueEnum)]
@@ -169,17 +172,11 @@ async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> Vec<Story> 
     enriched_stories
 }
 
-async fn get_summary(args: Args) {
-    tracing::info!(
-        config =? crate::config::config(),
-        args =? args,
-        "Started AI summarizer"
-    );
-
-    let db = db::open_db(args.reset);
+async fn get_summary(args: Args) -> anyhow::Result<()> {
+    let db = db::open_db(args.reset)?;
 
     tracing::info!("Database opened");
-    let processed_stories: Vec<i64> = db::get_processed_stories(&db);
+    let processed_stories: Vec<i64> = db::get_processed_stories(&db)?;
 
     tracing::info!(
         num_processed_stories = processed_stories.len(),
@@ -250,7 +247,7 @@ async fn get_summary(args: Args) {
 
     if stories.is_empty() {
         tracing::info!("No stories to present");
-        return;
+        return Ok(());
     }
 
     if args.export_text {
@@ -265,8 +262,10 @@ async fn get_summary(args: Args) {
         .expect("Failed to send message");
     tracing::info!("Sent message to google chat");
 
-    db::insert_stories(&db, stories);
+    db::insert_stories(&db, stories)?;
     tracing::info!("Inserted stories into db");
+
+    Ok(())
 }
 
 #[tokio::main]
@@ -282,7 +281,65 @@ async fn main() {
     use clap::Parser;
     let args = Args::parse();
 
+    let (tx, mut rx) = tokio::sync::mpsc::channel(1);
+
+    ctrlc::set_handler(move || {
+        tx.blocking_send(())
+            .expect("Could not send signal on channel.")
+    })
+    .expect("Error setting Ctrl-C handler");
+
     // Make sure to run program in separate task to ensure we don't hit
     // tokio main thread weirdness.
-    tokio::spawn(get_summary(args)).await.unwrap();
+    tokio::spawn(async move {
+        if args.no_cron {
+            tracing::info!(
+                config =? crate::config::config(),
+                args =? args,
+                "Starting AI summarizer on demand"
+            );
+            let _ = get_summary(args).await.map_err(|err| tracing::error!(error =? err, "Failed to get summary"));
+        } else {
+            tracing::info!(
+                config =? crate::config::config(),
+                args =? args,
+                "Starting AI summarizer on cron schedule"
+            );
+            let scheduler = tokio_cron_scheduler::JobScheduler::new()
+                .await
+                .expect("Failed to create scheduler");
+
+            scheduler
+                .add(
+                    tokio_cron_scheduler::Job::new_async(
+                        crate::config::config().cron_schedule.clone(),
+                        move |_, _| {
+                            Box::pin({
+                                let args = args.clone();
+                                async move {
+                                    let _ = get_summary(args).await.map_err(|err| tracing::error!(error =? err, "Failed to get summary"));
+                                }
+                            })  
+                        },
+                    )
+                    .expect("Failed to add job"),
+                )
+                .await
+                .expect("Failed to add job");
+            scheduler.start().await.expect("Failed to start scheduler");
+
+            loop {
+                tokio::select! {
+                    _ = rx.recv() => {
+                        tracing::info!("Ctrl-C received: Shutting down");
+                        break;
+                    }
+
+                }
+            }
+        }
+    })
+    .await
+    .expect("Program to gracefully run");
+    tracing::info!("Exiting");
 }
