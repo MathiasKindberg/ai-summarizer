@@ -23,9 +23,7 @@ fn story_to_message(story: &crate::Story) -> String {
     let summary = summary
         .as_ref()
         .expect("summary to be set")
-        .iter()
-        .map(|s| format!("{s}"))
-        .collect::<Vec<String>>()
+        .to_vec()
         .join("\n\n");
 
     format!(
@@ -67,7 +65,7 @@ mod tests {
     async fn test_send_message() {
         send_message(
             "Hello, world!".to_string(),
-            &crate::config::config().google_chat_test_webhook_url,
+            &crate::config::config().google_chat_webhook_url,
         )
         .await
         .unwrap();

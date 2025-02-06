@@ -257,7 +257,7 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
     }
 
     let message = google_chat::create_message(stories.clone());
-    google_chat::send_message(message, &config::config().google_chat_test_webhook_url)
+    google_chat::send_message(message, &config::config().google_chat_webhook_url)
         .await
         .expect("Failed to send message");
     tracing::info!("Sent message to google chat");
@@ -327,16 +327,9 @@ async fn main() {
                 .await
                 .expect("Failed to add job");
             scheduler.start().await.expect("Failed to start scheduler");
-
-            loop {
-                tokio::select! {
-                    _ = rx.recv() => {
-                        tracing::info!("Ctrl-C received: Shutting down");
-                        break;
-                    }
-
-                }
-            }
+            
+            rx.recv().await.expect("Failed to receive signal");
+            tracing::info!("Ctrl-C received: Shutting down");
         }
     })
     .await
