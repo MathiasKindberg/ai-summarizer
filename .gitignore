@@ -1,5 +1,6 @@
 /target
 .env
+.env.prod
 /.rust-analyzer
 /tmp
 db.sqlite

@@ -14,9 +14,7 @@ pub(crate) fn open_db(reset: bool) -> anyhow::Result<rusqlite::Connection> {
 }
 
 pub(crate) fn get_processed_stories(db: &rusqlite::Connection) -> anyhow::Result<Vec<i64>> {
-    let mut stmt = db
-        .prepare("SELECT id FROM stories")
-        .expect("Failed to prepare statement");
+    let mut stmt = db.prepare("SELECT id FROM stories")?;
 
     let mut ids = Vec::new();
     for row in stmt.query_map([], |row| row.get(0))? {

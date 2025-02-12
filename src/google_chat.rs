@@ -5,7 +5,7 @@ struct Message {
     text: String,
 }
 
-fn story_to_message(story: &crate::Story) -> String {
+fn story_to_message(story: &crate::Story) -> anyhow::Result<String> {
     let crate::Story {
         title,
         url,
@@ -17,21 +17,25 @@ fn story_to_message(story: &crate::Story) -> String {
         ..
     } = story;
 
-    let url = url.as_ref().expect("url to be set");
-    let descendents = descendents.as_ref().expect("descendents to be set");
-    let ai_impact_score = ai_impact_score.as_ref().expect("ai impact score to be set");
+    let url = url.as_ref().ok_or(anyhow::anyhow!("url to be set"))?;
+    let descendents = descendents
+        .as_ref()
+        .ok_or(anyhow::anyhow!("descendents to be set"))?;
+    let ai_impact_score = ai_impact_score
+        .as_ref()
+        .ok_or(anyhow::anyhow!("ai impact score to be set"))?;
     let summary = summary
         .as_ref()
-        .expect("summary to be set")
+        .ok_or(anyhow::anyhow!("summary to be set"))?
         .to_vec()
         .join("\n\n");
 
-    format!(
+    Ok(format!(
         "*<{url}|{title}>*\nAI Impact: {ai_impact_score} | Votes: {score} | <https://news.ycombinator.com/item?id={id}|{descendents} Comments> \n\n{summary}\n\n"
-    )
+    ))
 }
 
-pub(crate) fn create_message(stories: Vec<crate::Story>) -> String {
+pub(crate) fn create_message(stories: Vec<crate::Story>) -> anyhow::Result<String> {
     let mut message = String::new();
     message.push_str(&format!(
         "*Daily digest of top Hacker news AI stories as per {}*\n\n",
@@ -39,10 +43,10 @@ pub(crate) fn create_message(stories: Vec<crate::Story>) -> String {
     ));
 
     for story in stories {
-        message.push_str(&story_to_message(&story));
+        message.push_str(&story_to_message(&story)?);
     }
 
-    message
+    Ok(message)
 }
 
 pub(crate) async fn send_message(message: String, url: &str) -> anyhow::Result<()> {
@@ -75,7 +79,7 @@ mod tests {
     fn test_create_message() {
         let text = include_str!("examples/stories.json");
         let stories = serde_json::from_str::<Vec<crate::Story>>(text).unwrap();
-        let message = create_message(stories);
+        let message = create_message(stories).unwrap();
         println!("{}", message);
         // assert!(!message.is_empty());
         // println!("{}", message);

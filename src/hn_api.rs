@@ -27,8 +27,8 @@ pub(crate) async fn get_hackernews_top_stories() -> anyhow::Result<Vec<crate::St
         });
     }
 
-    while let Some(res) = queries_set.join_next().await {
-        match res.expect("JoinSet to work") {
+    while let Some(results) = queries_set.join_next().await {
+        match results? {
             Ok(story) => enriched_stories.push(story),
             Err(e) => tracing::error!(error =? e, "Error getting story"),
         }

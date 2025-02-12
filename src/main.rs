@@ -85,7 +85,7 @@ fn remove_stories_without_url(stories: Vec<Story>) -> Vec<Story> {
 }
 
 
-async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> Vec<Story> {
+async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> anyhow::Result<Vec<Story>> {
     let mut join_set: tokio::task::JoinSet<anyhow::Result<Story>> = tokio::task::JoinSet::new();
     let mut enriched_stories = Vec::with_capacity(stories.len());
 
@@ -94,7 +94,7 @@ async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> Vec<Story> 
         join_set.spawn(async move {
             let story = crate::openai::summarizer::enrich_story(story)
                 .await?;
-            tracing::info!(title = story.title, url = url, usage =? story.usage.clone().expect("Usage"), "Scored and summarized story");
+            tracing::info!(title = story.title, url = url, usage =? story.usage.clone().ok_or(anyhow::anyhow!("Usage not set"))?, "Scored and summarized story");
             Ok(story)
         });
     }
@@ -127,7 +127,7 @@ async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> Vec<Story> 
         "Finished enriching stories"
     );
 
-    enriched_stories
+    Ok(enriched_stories)
 }
 
 async fn get_summary(args: Args) -> anyhow::Result<()> {
@@ -142,8 +142,7 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
     );
 
     let stories = hn_api::get_hackernews_top_stories()
-        .await
-        .expect("Failed to get top stories");
+        .await?;
 
     tracing::info!(num_stories = stories.len(), "Got top stories");
 
@@ -173,8 +172,7 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
     );
 
     let stories = scraper::enrich_stories(stories, args.export_text)
-        .await
-        .expect("Failed to enrich stories");
+        .await?;
 
     tracing::info!(
         num_scraped_stories = stories.len(),
@@ -182,7 +180,7 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
     );
 
 
-    let mut stories = summarize_and_score_scraped_stories(stories).await;
+    let mut stories = summarize_and_score_scraped_stories(stories).await?;
 
     stories.sort_by(|a, b| {
         b.ai_impact_score
@@ -203,15 +201,13 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
     }
 
     if args.export_text {
-        let json_summaries = serde_json::to_string_pretty(&stories).unwrap();
-        std::fs::write("src/examples/stories.json", json_summaries)
-            .expect("Failed to write to file");
+        let json_summaries = serde_json::to_string_pretty(&stories)?;
+        std::fs::write("src/examples/stories.json", json_summaries)?;
     }
 
-    let message = google_chat::create_message(stories.clone());
+    let message = google_chat::create_message(stories.clone())?;
     google_chat::send_message(message, &config::config().google_chat_webhook_url)
-        .await
-        .expect("Failed to send message");
+        .await?;
     tracing::info!("Sent message to google chat");
 
     db::insert_stories(&db, stories)?;
