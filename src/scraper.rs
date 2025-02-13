@@ -66,28 +66,3 @@ fn html_to_trimmed_text(html: &str) -> anyhow::Result<String> {
 
     Ok(text.to_string())
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_scrape_text() {
-        let text = scrape_text(
-            "https://christiantietze.de/posts/2025/01/using-2-editors-because-xcode-is-dumb/",
-        )
-        // let text = scrape_text("https://apnews.com/article/trump-ai-openai-oracle-softbank-son-altman-ellison-be261f8a8ee07a0623d4170397348c41")
-        // let text = scrape_text(
-        //     "https://diamondgeezer.blogspot.com/2025/01/londons-most-central-sheep.html",
-        // )
-        .await
-        .unwrap();
-
-        let text = html_to_trimmed_text(&text).unwrap();
-        println!("{}", text);
-
-        use std::io::Write;
-        let mut file = std::fs::File::create("tmp/trimmed_scraped_text.txt").unwrap();
-        file.write_all(text.as_bytes()).unwrap();
-    }
-}

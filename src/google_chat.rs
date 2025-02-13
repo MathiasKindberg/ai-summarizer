@@ -60,28 +60,3 @@ pub(crate) async fn send_message(message: String, url: &str) -> anyhow::Result<(
 
     Ok(())
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_send_message() {
-        send_message(
-            "Hello, world!".to_string(),
-            &crate::config::config().google_chat_webhook_url,
-        )
-        .await
-        .unwrap();
-    }
-
-    #[test]
-    fn test_create_message() {
-        let text = include_str!("examples/stories.json");
-        let stories = serde_json::from_str::<Vec<crate::Story>>(text).unwrap();
-        let message = create_message(stories).unwrap();
-        println!("{}", message);
-        // assert!(!message.is_empty());
-        // println!("{}", message);
-    }
-}

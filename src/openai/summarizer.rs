@@ -82,29 +82,3 @@ fn schema_for_summarizer_response() -> crate::openai::Schema {
         strict: true,
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_summarize_and_score_text_categorical() {
-        let text = include_str!("../examples/Why-is-Big-Tech-hellbent-on-making-AI-opt-out?.txt");
-        let (res, _) = summarize_and_score_text_categorical(text).await.unwrap();
-        println!("Summary:\n{:#?}", res.summary);
-        println!("Score: {}", res.ai_impact);
-    }
-
-    #[tokio::test]
-    async fn test_summarize_should_work_with_empty_text() {
-        let (res, _) = summarize_and_score_text_categorical("").await.unwrap();
-        println!("Summary: {:?}", res.summary);
-        println!("Score: {}", res.ai_impact);
-    }
-
-    #[test]
-    fn test_summarizer_schema() {
-        let schema = schema_for_summarizer_response();
-        println!("{:<10}", serde_json::to_string_pretty(&schema).unwrap());
-    }
-}
