@@ -84,7 +84,6 @@ fn remove_stories_without_url(stories: Vec<Story>) -> Vec<Story> {
     stories.into_iter().filter(|s| s.url.is_some()).collect()
 }
 
-
 async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> anyhow::Result<Vec<Story>> {
     let mut join_set: tokio::task::JoinSet<anyhow::Result<Story>> = tokio::task::JoinSet::new();
     let mut enriched_stories = Vec::with_capacity(stories.len());
@@ -141,8 +140,7 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
         "Got already processed stories"
     );
 
-    let stories = hn_api::get_hackernews_top_stories()
-        .await?;
+    let stories = hn_api::get_hackernews_top_stories().await?;
 
     tracing::info!(num_stories = stories.len(), "Got top stories");
 
@@ -171,14 +169,12 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
         "Filtered out already processed stories"
     );
 
-    let stories = scraper::enrich_stories(stories, args.export_text)
-        .await?;
+    let stories = scraper::enrich_stories(stories, args.export_text).await?;
 
     tracing::info!(
         num_scraped_stories = stories.len(),
         "Finished scraping stories"
     );
-
 
     let mut stories = summarize_and_score_scraped_stories(stories).await?;
 
@@ -206,8 +202,7 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
     }
 
     let message = google_chat::create_message(stories.clone())?;
-    google_chat::send_message(message, &config::config().google_chat_webhook_url)
-        .await?;
+    google_chat::send_message(message, &config::config().google_chat_webhook_url).await?;
     tracing::info!("Sent message to google chat");
 
     db::insert_stories(&db, stories)?;
@@ -229,58 +224,7 @@ async fn main() {
     use clap::Parser;
     let args = Args::parse();
 
-    let (tx, mut rx) = tokio::sync::mpsc::channel(1);
+    get_summary(args).await.expect("Failed to get summary");
 
-    ctrlc::set_handler(move || {
-        tx.blocking_send(())
-            .expect("Could not send signal on channel.")
-    })
-    .expect("Error setting Ctrl-C handler");
-
-    // Make sure to run program in separate task to ensure we don't hit
-    // tokio main thread weirdness.
-    tokio::spawn(async move {
-        if args.no_cron {
-            tracing::info!(
-                config =? crate::config::config(),
-                args =? args,
-                "Starting AI summarizer on demand"
-            );
-            let _ = get_summary(args).await.map_err(|err| tracing::error!(error =? err, "Failed to get summary"));
-        } else {
-            tracing::info!(
-                config =? crate::config::config(),
-                args =? args,
-                "Starting AI summarizer on cron schedule"
-            );
-            let scheduler = tokio_cron_scheduler::JobScheduler::new()
-                .await
-                .expect("Failed to create scheduler");
-
-            scheduler
-                .add(
-                    tokio_cron_scheduler::Job::new_async(
-                        crate::config::config().cron_schedule.clone(),
-                        move |_, _| {
-                            Box::pin({
-                                let args = args.clone();
-                                async move {
-                                    let _ = get_summary(args).await.map_err(|err| tracing::error!(error =? err, "Failed to get summary"));
-                                }
-                            })  
-                        },
-                    )
-                    .expect("Failed to add job"),
-                )
-                .await
-                .expect("Failed to add job");
-            scheduler.start().await.expect("Failed to start scheduler");
-            
-            rx.recv().await.expect("Failed to receive signal");
-            tracing::info!("Ctrl-C received: Shutting down");
-        }
-    })
-    .await
-    .expect("Program to gracefully run");
     tracing::info!("Exiting");
 }

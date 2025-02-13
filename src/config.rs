@@ -4,7 +4,6 @@ pub(crate) struct Config {
     pub(crate) num_titles_to_request: usize,
     pub(crate) google_chat_webhook_url: String,
     pub(crate) max_number_of_stories_to_present: usize,
-    pub(crate) cron_schedule: String,
 }
 
 static CONFIG: std::sync::LazyLock<Config> = std::sync::LazyLock::new(|| {
@@ -26,7 +25,6 @@ static CONFIG: std::sync::LazyLock<Config> = std::sync::LazyLock::new(|| {
             .unwrap_or("5".to_string())
             .parse()
             .unwrap(),
-        cron_schedule: std::env::var("CRON_SCHEDULE").expect("CRON_SCHEDULE not set"),
     }
 });
 
