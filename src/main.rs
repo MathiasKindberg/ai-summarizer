@@ -229,7 +229,7 @@ async fn main() {
         .boxed();
 
     let pretty_layer = tracing_subscriber::fmt::layer()
-        .pretty()
+        // .pretty()
         .with_writer(std::io::stdout)
         .with_filter(tracing::level_filters::LevelFilter::INFO)
         .boxed();
@@ -242,5 +242,13 @@ async fn main() {
     use clap::Parser;
     let args = Args::parse();
 
+    tracing::info!(
+        config =? config::config(),
+        args =? args,
+        "Starting AI Summarizer"
+    );
+
     get_summary(args).await.expect("Failed to get summary");
+
+    tracing::info!("AI Summarizer finished");
 }
