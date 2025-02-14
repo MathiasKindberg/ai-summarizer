@@ -4,3 +4,4 @@
 /.rust-analyzer
 /tmp
 db.sqlite
+/log

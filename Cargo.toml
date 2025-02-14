@@ -4,19 +4,20 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0.95"
-clap = { version = "4.5.27", features = ["derive"] }
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
 dotenvy = "0.15"
-html2text = "0.13.6"
-regex = "1.11.1"
+html2text = "0.13"
+regex = "1.11"
 reqwest = { version = "0.12", features = [
     "rustls-tls",
     "json",
 ], default-features = false }
-rusqlite = { version = "0.33.0", features = ["bundled"] }
+rusqlite = { version = "0.33", features = ["bundled"] }
 schemars = "1.0.0-alpha.17"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
-tracing-subscriber = "0.3.0"
+tracing-appender = "0.2"
+tracing-subscriber = { version = "0.3", features = ["json"] }
