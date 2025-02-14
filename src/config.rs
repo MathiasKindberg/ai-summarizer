@@ -4,6 +4,7 @@ pub(crate) struct Config {
     pub(crate) num_titles_to_request: usize,
     pub(crate) google_chat_webhook_url: String,
     pub(crate) max_number_of_stories_to_present: usize,
+    pub(crate) log_to_console: bool,
 }
 
 static CONFIG: std::sync::LazyLock<Config> = std::sync::LazyLock::new(|| {
@@ -23,6 +24,10 @@ static CONFIG: std::sync::LazyLock<Config> = std::sync::LazyLock::new(|| {
             .expect("GOOGLE_CHAT_WEBHOOK_URL not set"),
         max_number_of_stories_to_present: std::env::var("MAX_NUMBER_OF_STORIES_TO_PRESENT")
             .unwrap_or("5".to_string())
+            .parse()
+            .unwrap(),
+        log_to_console: std::env::var("LOG_TO_CONSOLE")
+            .expect("LOG_TO_CONSOLE not set")
             .parse()
             .unwrap(),
     }

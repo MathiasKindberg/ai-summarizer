@@ -47,22 +47,37 @@ async fn scrape_text(url: &str) -> anyhow::Result<String> {
     Ok(response)
 }
 
+struct Regex {
+    link_list_remover: regex::Regex,
+    link_number_remover: regex::Regex,
+    bracket_remover: regex::Regex,
+}
+
+static REGEX: std::sync::LazyLock<Regex> = std::sync::LazyLock::new(|| Regex {
+    // Removes all lines containing the links.
+    // [19]: /now
+    // [20]: /uses
+    link_list_remover: regex::Regex::new(r"\[\d+\]:.+\n").unwrap(),
+    // Removes the link numbers.
+    // [19]
+    link_number_remover: regex::Regex::new(r"\[\d+\]").unwrap(),
+    // Removes the brackets.
+    // [ or ]
+    bracket_remover: regex::Regex::new(r"[\[|\]]").unwrap(),
+});
+
+fn regex() -> &'static Regex {
+    &REGEX
+}
+
 fn html_to_trimmed_text(html: &str) -> anyhow::Result<String> {
     let text = html2text::config::plain()
         .raw_mode(true)
         .string_from_read(html.as_bytes(), 80)?;
 
-    // Removes all lines containing the links.
-    // [19]: /now
-    // [20]: /uses
-    let link_list_remover = regex::Regex::new(r"\[\d+\]:.+\n").unwrap();
-    let text = link_list_remover.replace_all(&text, "");
-
-    let link_number_re = regex::Regex::new(r"\[\d+\]").unwrap();
-    let text = link_number_re.replace_all(&text, "");
-
-    let bracket_re = regex::Regex::new(r"[\[|\]]").unwrap();
-    let text = bracket_re.replace_all(&text, "");
+    let text = regex().link_list_remover.replace_all(&text, "");
+    let text = regex().link_number_remover.replace_all(&text, "");
+    let text = regex().bracket_remover.replace_all(&text, "");
 
     Ok(text.to_string())
 }

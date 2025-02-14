@@ -23,7 +23,7 @@ struct Args {
     reset: bool,
 
     #[arg(short, long, default_value = "false")]
-    no_cron: bool,
+    log_to_console: bool,
 }
 
 #[derive(Debug, Clone, clap::ValueEnum)]
@@ -218,6 +218,9 @@ async fn main() {
     use tracing_subscriber::layer::Layer;
     use tracing_subscriber::layer::SubscriberExt;
 
+    use clap::Parser;
+    let args = Args::parse();
+
     let file_appender = tracing_appender::rolling::daily("./log", "ai_summarizer.log");
     let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
 
@@ -234,13 +237,13 @@ async fn main() {
         .with_filter(tracing::level_filters::LevelFilter::INFO)
         .boxed();
 
-    tracing_subscriber::registry()
-        .with(file_layer)
-        .with(pretty_layer)
-        .init();
+    let registry = tracing_subscriber::registry().with(file_layer);
 
-    use clap::Parser;
-    let args = Args::parse();
+    if config::config().log_to_console || args.log_to_console {
+        registry.with(pretty_layer).init();
+    } else {
+        registry.init();
+    };
 
     tracing::info!(
         config =? config::config(),
