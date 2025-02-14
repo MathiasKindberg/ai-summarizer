@@ -60,6 +60,23 @@ struct Story {
     usage: Option<crate::openai::Usage>,
 }
 
+impl Default for Story {
+    fn default() -> Self {
+        Self {
+            id: 0,
+            score: 0,
+            descendants: None,
+            title: "".to_string(),
+            url: None,
+            story_type: "".to_string(),
+            ai_impact_score: None,
+            text: None,
+            summary: None,
+            usage: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Deserialize, serde::Serialize)]
 enum ImpactScore {
     Numerical(i64),
@@ -131,6 +148,19 @@ async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> anyhow::Res
     Ok(enriched_stories)
 }
 
+fn sort_stories(stories: &mut [Story]) {
+    stories.sort_by(|a, b| {
+        let a_score = a.ai_impact_score.as_ref().unwrap();
+        let b_score = b.ai_impact_score.as_ref().unwrap();
+
+        if a_score == b_score {
+            b.score.cmp(&a.score)
+        } else {
+            a_score.cmp(b_score)
+        }
+    })
+}
+
 async fn get_summary(args: Args) -> anyhow::Result<()> {
     let db = db::open_db(args.reset)?;
 
@@ -180,13 +210,7 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
 
     let mut stories = summarize_and_score_scraped_stories(stories).await?;
 
-    stories.sort_by(|a, b| {
-        b.ai_impact_score
-            .as_ref()
-            .unwrap()
-            .cmp(a.ai_impact_score.as_ref().unwrap())
-    });
-    stories.reverse();
+    sort_stories(&mut stories);
 
     let stories = stories[..config::config()
         .max_number_of_stories_to_present
@@ -254,4 +278,62 @@ async fn main() {
     get_summary(args).await.expect("Failed to get summary");
 
     tracing::info!("AI Summarizer finished");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sort_stories() {
+        let mut stories = vec![
+            Story {
+                id: 0,
+                score: 200,
+                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::High)),
+                ..Default::default()
+            },
+            Story {
+                id: 1,
+                score: 100,
+                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::Medium)),
+                ..Default::default()
+            },
+            Story {
+                id: 2,
+                score: 0,
+                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::Low)),
+                ..Default::default()
+            },
+            Story {
+                id: 3,
+                score: 400,
+                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::High)),
+                ..Default::default()
+            },
+            Story {
+                id: 4,
+                score: 300,
+                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::Medium)),
+                ..Default::default()
+            },
+            Story {
+                id: 5,
+                score: 300,
+                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::High)),
+                ..Default::default()
+            },
+        ];
+
+        sort_stories(&mut stories);
+
+        // Stories should be sorted by impact score (High > Medium > Low > Zero)
+        // Within the same impact score, higher HN score should come first
+        assert_eq!(stories[0].id, 3); // High impact
+        assert_eq!(stories[1].id, 5); // High impact
+        assert_eq!(stories[2].id, 0); // High impact
+        assert_eq!(stories[3].id, 4); // Medium impact
+        assert_eq!(stories[4].id, 1); // Medium impact
+        assert_eq!(stories[5].id, 2); // Low impact
+    }
 }
