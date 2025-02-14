@@ -4,9 +4,9 @@ pub(crate) mod config;
 pub(crate) mod db;
 pub(crate) mod google_chat;
 pub(crate) mod hn_api;
+mod lints;
 pub(crate) mod openai;
 pub(crate) mod scraper;
-
 pub(crate) static CLIENT: std::sync::LazyLock<reqwest::Client> =
     std::sync::LazyLock::new(reqwest::Client::new);
 
