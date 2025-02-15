@@ -1,5 +1,6 @@
 use tracing_subscriber::util::SubscriberInitExt;
 
+mod backoff;
 pub(crate) mod config;
 pub(crate) mod db;
 pub(crate) mod google_chat;

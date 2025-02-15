@@ -1,6 +1,27 @@
 //! Simple scraper. Takes a link and simply returns the text message not loading any
 //! dynamically fetched content.
 
+async fn scrape_and_trim_text(story: &crate::Story, export_text: bool) -> anyhow::Result<String> {
+    let raw_text = crate::scraper::scrape_text(story.url.as_ref().ok_or(anyhow::anyhow!(
+        "URL not found. Title: {} Id: {}",
+        story.title,
+        story.id
+    ))?)
+    .await?;
+
+    let trimmed_text = crate::scraper::html_to_trimmed_text(&raw_text)?;
+
+    if export_text {
+        use std::io::Write;
+        let mut file = std::fs::File::create(format!("tmp/{}.txt", story.title.replace(" ", "-")))
+            .map_err(|e| anyhow::Error::new(e))?;
+        file.write_all(trimmed_text.as_bytes())
+            .map_err(|e| anyhow::Error::new(e))?;
+    }
+
+    Ok(trimmed_text)
+}
+
 pub(crate) async fn enrich_stories(
     stories: Vec<crate::Story>,
     export_text: bool,
@@ -12,18 +33,32 @@ pub(crate) async fn enrich_stories(
 
     for mut story in stories {
         queries_set.spawn(async move {
-            let raw_text = crate::scraper::scrape_text(story.url.as_ref().ok_or(
-                anyhow::anyhow!("URL not found. Title: {} Id: {}", story.title, story.id),
-            )?)
-            .await?;
-            let trimmed_text = crate::scraper::html_to_trimmed_text(&raw_text)?;
+            let title = story.title.clone();
+            let id = story.id;
+            let url = story.url.clone();
 
-            if export_text {
-                use std::io::Write;
-                let mut file =
-                    std::fs::File::create(format!("tmp/{}.txt", story.title.replace(" ", "-")))?;
-                file.write_all(trimmed_text.as_bytes())?;
-            }
+            let trimmed_text = backoff::future::retry_notify(
+                crate::backoff::backoff_default(),
+                || async {
+                    Ok(tokio::select! {
+                        res = scrape_and_trim_text(&story, export_text) => res,
+                        _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
+                            tracing::error!("Nooooooo");
+                            Err(anyhow::anyhow!("Timeout when scraping story"))},
+                    }?)
+                },
+                |e, duration: std::time::Duration| {
+                    tracing::warn!(
+                        error =? e,
+                        error_at =? duration.as_secs(),
+                        title = title,
+                        id = id,
+                        url = url,
+                        "Error when scraping story, retrying"
+                    )
+                },
+            )
+            .await?;
 
             story.text = Some(trimmed_text);
 
