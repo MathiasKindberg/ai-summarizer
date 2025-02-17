@@ -268,9 +268,17 @@ async fn main() {
         "Starting AI Summarizer"
     );
 
-    get_summary(args).await.expect("Failed to get summary");
-
-    tracing::info!("AI Summarizer finished");
+    // Timeout after an hour
+    const TIMEOUT: u64 = 60 * 60 * 60;
+    tokio::select! {
+        res = get_summary(args) => match res {
+            Ok(_) => tracing::info!("AI Summarizer finished"),
+            Err(e) => tracing::error!(error =? e, "Error when getting summary"),
+        },
+        _ = tokio::time::sleep(std::time::Duration::from_secs(TIMEOUT)) => {
+            tracing::error!(timeout = TIMEOUT, "Timeout when getting summary");
+        }
+    }
 }
 
 #[cfg(test)]
