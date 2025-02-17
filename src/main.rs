@@ -53,7 +53,7 @@ struct Story {
     story_type: String,
 
     // Not included in json response. Our own enrichment.
-    ai_impact_score: Option<ImpactScore>,
+    ai_impact_score: Option<crate::openai::Category>,
     text: Option<String>,
     summary: Option<Vec<String>>,
 
@@ -78,21 +78,6 @@ impl Default for Story {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Deserialize, serde::Serialize)]
-enum ImpactScore {
-    Numerical(i64),
-    Categorical(crate::openai::Category),
-}
-
-impl std::fmt::Display for ImpactScore {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ImpactScore::Numerical(n) => write!(f, "{}", n),
-            ImpactScore::Categorical(c) => write!(f, "{}", c),
-        }
-    }
-}
-
 fn remove_job_adverts(stories: Vec<Story>) -> Vec<Story> {
     stories
         .into_iter()
@@ -111,9 +96,15 @@ async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> anyhow::Res
     for story in stories {
         let url = story.url.clone().unwrap();
         join_set.spawn(async move {
-            let story = crate::openai::summarizer::enrich_story(story)
-                .await?;
-            tracing::info!(title = story.title, url = url, usage =? story.usage.clone().ok_or(anyhow::anyhow!("Usage not set"))?, "Scored and summarized story");
+            let story = crate::openai::summarizer::enrich_story(story).await?;
+            tracing::info!(
+                title = story.title,
+                url = url,
+                ai_score =? story.ai_impact_score,
+                votes = story.score,
+                usage =? story.usage,
+                "Scored and summarized story"
+            );
             Ok(story)
         });
     }
@@ -213,15 +204,12 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
 
     sort_stories(&mut stories);
 
-    let stories = stories[..config::config()
+    let mut stories = stories[..config::config()
         .max_number_of_stories_to_present
         .min(stories.len())]
         .to_vec();
 
-    if stories.is_empty() {
-        tracing::info!("No stories to present");
-        return Ok(());
-    }
+    stories.retain(|s| s.ai_impact_score.as_ref().unwrap() == &crate::openai::Category::High);
 
     if args.export_text {
         let json_summaries = serde_json::to_string_pretty(&stories)?;
@@ -232,8 +220,12 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
     google_chat::send_message(message, &config::config().google_chat_webhook_url).await?;
     tracing::info!("Sent message to google chat");
 
-    db::insert_stories(&db, stories)?;
-    tracing::info!("Inserted stories into db");
+    db::insert_stories(&db, &stories)?;
+    tracing::info!(
+        num = stories.len(),
+        ids =? stories.iter().map(|s: &Story| s.id).collect::<Vec<_>>(),
+        "Inserted stories into db"
+    );
 
     Ok(())
 }
@@ -291,37 +283,37 @@ mod tests {
             Story {
                 id: 0,
                 score: 200,
-                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::High)),
+                ai_impact_score: Some(crate::openai::Category::High),
                 ..Default::default()
             },
             Story {
                 id: 1,
                 score: 100,
-                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::Medium)),
+                ai_impact_score: Some(crate::openai::Category::Medium),
                 ..Default::default()
             },
             Story {
                 id: 2,
                 score: 0,
-                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::Low)),
+                ai_impact_score: Some(crate::openai::Category::Low),
                 ..Default::default()
             },
             Story {
                 id: 3,
                 score: 400,
-                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::High)),
+                ai_impact_score: Some(crate::openai::Category::High),
                 ..Default::default()
             },
             Story {
                 id: 4,
                 score: 300,
-                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::Medium)),
+                ai_impact_score: Some(crate::openai::Category::Medium),
                 ..Default::default()
             },
             Story {
                 id: 5,
                 score: 300,
-                ai_impact_score: Some(ImpactScore::Categorical(crate::openai::Category::High)),
+                ai_impact_score: Some(crate::openai::Category::High),
                 ..Default::default()
             },
         ];

@@ -20,12 +20,14 @@ pub(crate) fn get_processed_stories(db: &rusqlite::Connection) -> anyhow::Result
     for row in stmt.query_map([], |row| row.get(0))? {
         ids.push(row?);
     }
+
+    tracing::info!(num = ids.len(), "Got processed stories");
     Ok(ids)
 }
 
 pub(crate) fn insert_stories(
     db: &rusqlite::Connection,
-    stories: Vec<crate::Story>,
+    stories: &[crate::Story],
 ) -> anyhow::Result<()> {
     let mut stmt = db.prepare("INSERT INTO stories (id) VALUES (?) ON CONFLICT(id) DO NOTHING")?;
 

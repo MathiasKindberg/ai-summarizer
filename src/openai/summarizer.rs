@@ -1,7 +1,7 @@
 pub(crate) async fn enrich_story(mut story: crate::Story) -> anyhow::Result<crate::Story> {
     let (summary, usage) = summarize_and_score_text_categorical(&story.title).await?;
     story.summary = Some(summary.summary);
-    story.ai_impact_score = Some(crate::ImpactScore::Categorical(summary.ai_impact));
+    story.ai_impact_score = Some(summary.ai_impact);
 
     story.usage = Some(usage);
     Ok(story)
