@@ -14,9 +14,9 @@ async fn scrape_and_trim_text(story: &crate::Story, export_text: bool) -> anyhow
     if export_text {
         use std::io::Write;
         let mut file = std::fs::File::create(format!("tmp/{}.txt", story.title.replace(" ", "-")))
-            .map_err(|e| anyhow::Error::new(e))?;
+            .map_err(anyhow::Error::new)?;
         file.write_all(trimmed_text.as_bytes())
-            .map_err(|e| anyhow::Error::new(e))?;
+            .map_err(anyhow::Error::new)?;
     }
 
     Ok(trimmed_text)
@@ -43,7 +43,6 @@ pub(crate) async fn enrich_stories(
                     Ok(tokio::select! {
                         res = scrape_and_trim_text(&story, export_text) => res,
                         _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
-                            tracing::error!("Nooooooo");
                             Err(anyhow::anyhow!("Timeout when scraping story"))},
                     }?)
                 },
