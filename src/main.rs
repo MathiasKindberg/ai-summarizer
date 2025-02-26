@@ -209,7 +209,14 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
         .min(stories.len())]
         .to_vec();
 
-    stories.retain(|s| s.ai_impact_score.as_ref().unwrap() == &crate::openai::Category::High);
+    stories.retain(|s| {
+        s.ai_impact_score.as_ref().unwrap() == &crate::openai::Category::High && s.summary.is_some()
+    });
+
+    if stories.is_empty() {
+        tracing::info!("No stories to send to google chat");
+        return Ok(());
+    }
 
     if args.export_text {
         let json_summaries = serde_json::to_string_pretty(&stories)?;
