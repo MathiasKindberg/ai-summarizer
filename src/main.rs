@@ -14,9 +14,6 @@ pub(crate) static CLIENT: std::sync::LazyLock<reqwest::Client> =
 #[derive(Debug, Clone, clap::Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
-    #[arg(short, long, default_value = "categorical")]
-    mode: Mode,
-
     #[arg(short, long, default_value = "false")]
     export_text: bool,
 
