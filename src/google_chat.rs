@@ -28,9 +28,8 @@ fn story_to_message(story: &crate::Story) -> anyhow::Result<String> {
         .to_vec()
         .join("\n\n");
 
-    const GITHUB_REPO_URL: &str = "https://github.com/mathiaskindberg/ai-summarizer";
     Ok(format!(
-        "*<{url}|{title}>*\nAI Impact: {ai_impact_score} | Votes: {score} | <https://news.ycombinator.com/item?id={id}|{descendents} Comments>\n\n{summary}\n\n<{GITHUB_REPO_URL}|Source code>"
+        "*<{url}|{title}>*\nAI Impact: {ai_impact_score} | Votes: {score} | <https://news.ycombinator.com/item?id={id}|{descendents} Comments>\n\n{summary}\n\n"
     ))
 }
 
@@ -44,6 +43,9 @@ pub(crate) fn create_message(stories: Vec<crate::Story>) -> anyhow::Result<Strin
     for story in stories {
         message.push_str(&story_to_message(&story)?);
     }
+
+    const GITHUB_REPO_URL: &str = "https://github.com/mathiaskindberg/ai-summarizer";
+    message.push_str(&format!("<{GITHUB_REPO_URL}|Source code>"));
 
     Ok(message)
 }
