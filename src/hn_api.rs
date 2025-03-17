@@ -7,7 +7,6 @@ pub(crate) async fn get_hackernews_top_stories() -> anyhow::Result<Vec<crate::St
         [..crate::config::config().num_titles_to_request]
         .to_vec();
 
-    // We can do this in parallel but this is good enough for now.
     let mut enriched_stories = Vec::with_capacity(stories.len());
 
     let mut queries_set: tokio::task::JoinSet<anyhow::Result<crate::Story>> =

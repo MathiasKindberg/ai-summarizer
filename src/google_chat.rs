@@ -1,5 +1,3 @@
-// https://chat.googleapis.com/v1/spaces/AAAAkZT2Cu4/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Gnrdf_mB45MtianvteUbzLojaXeUA6ozI3kgV5gKEXE
-
 #[derive(Debug, serde::Serialize)]
 struct Message {
     text: String,
