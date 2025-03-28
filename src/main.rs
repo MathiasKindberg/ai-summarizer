@@ -93,7 +93,7 @@ async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> anyhow::Res
     for story in stories {
         let url = story.url.clone().unwrap();
         join_set.spawn(async move {
-            let story = crate::openai::summarizer::enrich_story(story).await?;
+            let story = crate::openai::enrich_story(story).await?;
             tracing::info!(
                 title = story.title,
                 url = url,
