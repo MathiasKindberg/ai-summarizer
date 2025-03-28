@@ -94,17 +94,13 @@ pub(crate) struct ResponseFormat {
 
 // Open AI Generic Queries
 #[derive(Debug, serde::Deserialize)]
+#[allow(unused)]
 pub(crate) struct OpenAIChatCompletionResponse {
-    #[allow(unused)]
     pub(crate) id: String,
-    #[allow(unused)]
     pub(crate) object: String,
-    #[allow(unused)]
     pub(crate) created: i64,
-    #[allow(unused)]
     pub(crate) model: String,
     pub(crate) choices: Vec<Choice>,
-    #[allow(unused)]
     pub(crate) usage: Usage,
 }
 
@@ -115,11 +111,10 @@ pub(crate) struct ResponseMessage {
 }
 
 #[derive(Debug, serde::Deserialize)]
+#[allow(unused)]
 pub(crate) struct Choice {
     pub(crate) message: ResponseMessage,
-    #[allow(unused)]
     pub(crate) finish_reason: String,
-    #[allow(unused)]
     pub(crate) index: i64,
 }
 

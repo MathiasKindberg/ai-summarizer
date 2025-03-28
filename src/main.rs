@@ -24,18 +24,6 @@ struct Args {
     log_to_console: bool,
 }
 
-#[derive(Debug, Clone, clap::ValueEnum)]
-enum Mode {
-    Categorical,
-    Numerical,
-}
-
-impl std::fmt::Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 struct Story {
     id: i64,
