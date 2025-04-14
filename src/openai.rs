@@ -138,9 +138,9 @@ async fn summarize_and_score_text_categorical(
     text: &str,
 ) -> anyhow::Result<(SummaryResponse, crate::openai::Usage)> {
     let query = crate::openai::OpenAIChatCompletionQuery::new(
-        crate::config::config().summarizer.model.clone(),
+        crate::config::config().model.clone(),
         crate::openai::OpenAIChatCompletionQuery::system_prompt_and_content_to_messages(
-            &crate::config::config().summarizer.system_prompt,
+            &crate::config::config().system_prompt,
             text,
         ),
         schema_for_summarizer_response(),
@@ -149,11 +149,7 @@ async fn summarize_and_score_text_categorical(
     let response = crate::CLIENT
         .post("https://api.openai.com/v1/chat/completions")
         .header(reqwest::header::USER_AGENT, "test")
-        .header(
-            reqwest::header::AUTHORIZATION,
-            format!("Bearer {}", crate::config::config().summarizer.api_key),
-        )
-        // .bearer_auth(&crate::config::config().api_key)
+        .bearer_auth(&crate::config::config().api_key)
         .json(&query)
         .send()
         .await?;
@@ -187,11 +183,7 @@ pub(crate) struct SummaryResponse {
 
 /// Creates the json schema for the output following the OpenAI completely non-standard format...
 fn schema_for_summarizer_response() -> crate::openai::Schema {
-    let mut schema = schemars::generate::SchemaSettings::default()
-        .for_serialize()
-        .with(|s| s.meta_schema = None)
-        // The schema generator automatically adds "format" to the items specifying for example int64
-        // or double. OpenAI does not support this.
+    let schema = schemars::generate::SchemaSettings::default()
         .with_transform(schemars::transform::RecursiveTransform(
             |schema: &mut schemars::Schema| {
                 schema.remove("format");
@@ -200,12 +192,9 @@ fn schema_for_summarizer_response() -> crate::openai::Schema {
         .into_generator()
         .into_root_schema_for::<SummaryResponse>();
 
-    // Remove title field from schema since OpenAI api does not support it.
-    schema.as_object_mut().unwrap().remove("title");
-
     crate::openai::Schema {
         name: "ai_relatedness_scores".to_string(),
-        schema: serde_json::to_value(schema).unwrap(),
+        schema: serde_json::to_value(schema).expect("Failed to convert schema to json"),
         strict: true,
     }
 }

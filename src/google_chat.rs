@@ -37,7 +37,7 @@ pub(crate) fn create_message(stories: Vec<crate::Story>) -> anyhow::Result<Strin
     let mut message = String::new();
     message.push_str(&format!(
         "*Daily digest of top Hacker news AI stories as per {}*\n\n",
-        crate::config::config().summarizer.model
+        crate::config::config().model
     ));
 
     for story in stories {

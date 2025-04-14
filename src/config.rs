@@ -1,6 +1,9 @@
 #[derive(Debug)]
 pub(crate) struct Config {
-    pub(crate) summarizer: Summarizer,
+    pub(crate) api_key: String,
+    pub(crate) model: String,
+    pub(crate) system_prompt: String,
+
     pub(crate) num_titles_to_request: usize,
     pub(crate) google_chat_webhook_url: String,
     pub(crate) max_number_of_stories_to_present: usize,
@@ -15,7 +18,10 @@ static CONFIG: std::sync::LazyLock<Config> = std::sync::LazyLock::new(|| {
     }
 
     Config {
-        summarizer: Summarizer::new(),
+        api_key: std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY not set"),
+        model: std::env::var("OPENAI_MODEL").expect("OPENAI_MODEL not set"),
+        system_prompt: std::env::var("SYSTEM_PROMPT").expect("SYSTEM_PROMPT not set"),
+
         num_titles_to_request: std::env::var("NUM_TITLES_TO_REQUEST")
             .unwrap_or("60".to_string())
             .parse()
@@ -35,21 +41,4 @@ static CONFIG: std::sync::LazyLock<Config> = std::sync::LazyLock::new(|| {
 
 pub(crate) fn config() -> &'static Config {
     &CONFIG
-}
-
-#[derive(Debug)]
-pub(crate) struct Summarizer {
-    pub(crate) api_key: String,
-    pub(crate) model: String,
-    pub(crate) system_prompt: String,
-}
-
-impl Summarizer {
-    fn new() -> Self {
-        Self {
-            api_key: std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY not set"),
-            model: std::env::var("OPENAI_MODEL").expect("OPENAI_MODEL not set"),
-            system_prompt: std::env::var("SYSTEM_PROMPT").expect("SYSTEM_PROMPT not set"),
-        }
-    }
 }
