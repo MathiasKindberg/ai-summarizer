@@ -15,12 +15,15 @@ pub(crate) static CLIENT: std::sync::LazyLock<reqwest::Client> =
 #[command(version, about, long_about = None)]
 struct Args {
     #[arg(short, long, default_value = "false")]
+    #[arg(help = "Export the stories to json in the export directory")]
     export_text: bool,
 
     #[arg(short, long, default_value = "false")]
+    #[arg(help = "Reset the database")]
     reset: bool,
 
     #[arg(short, long, default_value = "false")]
+    #[arg(help = "Log to console")]
     log_to_console: bool,
 }
 
@@ -205,7 +208,9 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
 
     if args.export_text {
         let json_summaries = serde_json::to_string_pretty(&stories)?;
-        std::fs::write("src/examples/stories.json", json_summaries)?;
+        std::fs::create_dir_all("export")?;
+        std::fs::write("export/exported_stories.json", json_summaries)?;
+        tracing::info!("Exported stories to export/exported_stories.json");
     }
 
     let message = google_chat::create_message(stories.clone())?;
@@ -241,7 +246,8 @@ async fn main() {
         .boxed();
 
     let pretty_layer = tracing_subscriber::fmt::layer()
-        // .pretty()
+        .with_file(true)
+        .with_line_number(true)
         .with_writer(std::io::stdout)
         .with_filter(tracing::level_filters::LevelFilter::INFO)
         .boxed();

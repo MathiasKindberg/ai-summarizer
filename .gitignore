@@ -6,3 +6,4 @@
 db.sqlite
 /log
 justfile
+/export
