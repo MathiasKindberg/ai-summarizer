@@ -13,6 +13,10 @@ RUN echo "SYSTEM_PROMPT=${SYSTEM_PROMPT}"
 
 WORKDIR /ai-summarizer
 
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends cmake \
+ && rm -rf /var/lib/apt/lists/*
+
 # RUN cargo install --path .
 # RUN apt-get -y install podman
 # RUN apt-get update 

@@ -8,14 +8,14 @@ anyhow = "1.0"
 backon = "1"
 clap = { version = "4.5", features = ["derive"] }
 dotenvy = "0.15"
-html2text = "0.14"
+html2text = "0.17"
 regex = "1.11"
-reqwest = { version = "0.12", features = [
-    "rustls-tls",
+reqwest = { version = "0.13", features = [
+    "rustls",
     "json",
 ], default-features = false }
-rusqlite = { version = "0.33", features = ["bundled"] }
-schemars = "1.0.0-alpha.17"
+rusqlite = { version = "0.39", features = ["bundled"] }
+schemars = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
