@@ -28,15 +28,45 @@ impl std::fmt::Display for crate::openai::Category {
     }
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
+pub(crate) enum ReasoningEffort {
+    Low,
+    Medium,
+    High,
+}
+
+impl std::str::FromStr for ReasoningEffort {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "low" => Ok(Self::Low),
+            "medium" => Ok(Self::Medium),
+            "high" => Ok(Self::High),
+            other => Err(anyhow::anyhow!(
+                "invalid OPENAI_REASONING_EFFORT {other:?}; expected low | medium | high"
+            )),
+        }
+    }
+}
+
 #[derive(Debug, serde::Serialize)]
 pub(crate) struct OpenAIChatCompletionQuery {
     model: String,
     messages: Vec<Message>,
     response_format: ResponseFormat,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning_effort: Option<ReasoningEffort>,
 }
 
 impl OpenAIChatCompletionQuery {
-    pub(crate) fn new(model: String, messages: Vec<Message>, schema: Schema) -> Self {
+    pub(crate) fn new(
+        model: String,
+        messages: Vec<Message>,
+        schema: Schema,
+        reasoning_effort: Option<ReasoningEffort>,
+    ) -> Self {
         Self {
             model,
             messages,
@@ -44,6 +74,7 @@ impl OpenAIChatCompletionQuery {
                 response_type: "json_schema".to_string(),
                 json_schema: schema,
             },
+            reasoning_effort,
         }
     }
 
@@ -137,6 +168,8 @@ pub(crate) async fn enrich_story(mut story: crate::Story) -> anyhow::Result<crat
 async fn summarize_and_score_text_categorical(
     text: &str,
 ) -> anyhow::Result<(SummaryResponse, crate::openai::Usage)> {
+    use backon::Retryable;
+
     let query = crate::openai::OpenAIChatCompletionQuery::new(
         crate::config::config().model.clone(),
         crate::openai::OpenAIChatCompletionQuery::system_prompt_and_content_to_messages(
@@ -144,27 +177,39 @@ async fn summarize_and_score_text_categorical(
             text,
         ),
         schema_for_summarizer_response(),
+        crate::config::config().reasoning_effort.clone(),
     );
 
-    let response = crate::CLIENT
-        .post("https://api.openai.com/v1/chat/completions")
-        .header(reqwest::header::USER_AGENT, "test")
-        .bearer_auth(&crate::config::config().api_key)
-        .json(&query)
-        .send()
-        .await?;
+    let model_response: crate::openai::OpenAIChatCompletionResponse = (|| async {
+        let response = crate::CLIENT
+            .post("https://api.openai.com/v1/chat/completions")
+            .timeout(std::time::Duration::from_secs(180))
+            .header(reqwest::header::USER_AGENT, "test")
+            .bearer_auth(&crate::config::config().api_key)
+            .json(&query)
+            .send()
+            .await?;
 
-    // If the request fails print the raw output for debugging.
-    if let Err(e) = response.error_for_status_ref() {
-        println!("Error: {}", e);
-        println!("Raw output:\n{}", response.text().await?);
-        return Err(anyhow::anyhow!("Error querying model: {}", e));
-    }
+        if let Err(e) = response.error_for_status_ref() {
+            let body = response.text().await.unwrap_or_default();
+            return Err(anyhow::anyhow!("OpenAI request failed: {e}: {body}"));
+        }
 
-    let model_response: crate::openai::OpenAIChatCompletionResponse = response.json().await?;
+        Ok(response.json().await?)
+    })
+    .retry(crate::backoff::backoff_default())
+    .sleep(tokio::time::sleep)
+    .notify(|e: &anyhow::Error, duration: std::time::Duration| {
+        tracing::warn!(
+            error =? e,
+            error_at =? duration.as_secs(),
+            "Error querying OpenAI, retrying"
+        );
+    })
+    .await?;
+
     let summary =
-        serde_json::from_str::<SummaryResponse>(&model_response.choices[0].message.content)
-            .unwrap();
+        serde_json::from_str::<SummaryResponse>(&model_response.choices[0].message.content)?;
     Ok((summary, model_response.usage))
 }
 

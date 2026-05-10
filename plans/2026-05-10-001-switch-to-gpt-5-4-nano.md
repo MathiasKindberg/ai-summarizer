@@ -1,6 +1,6 @@
 # Switch OpenAI Model from o4-mini to gpt-5.4-nano (medium reasoning)
 
-**Status**: Planned
+**Status**: Implemented
 
 Per `CLAUDE.md` ("NEVER change model names ... without explicit user approval"),
 this plan exists to get that approval before any code lands. No `.env.example`,

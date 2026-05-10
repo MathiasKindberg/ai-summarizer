@@ -1,6 +1,6 @@
 # Migrate from `backoff` crate to `backon`
 
-**Status**: Planned
+**Status**: Implemented
 
 ## Motivation
 

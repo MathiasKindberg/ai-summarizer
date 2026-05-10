@@ -25,6 +25,14 @@ struct Args {
     #[arg(short, long, default_value = "false")]
     #[arg(help = "Log to console")]
     log_to_console: bool,
+
+    #[arg(short, long, default_value = "false")]
+    #[arg(help = "Skip the Google Chat post (for local verification)")]
+    no_post: bool,
+
+    #[arg(long)]
+    #[arg(help = "Number of HN top stories to fetch and process (default: NUM_TITLES_TO_REQUEST)")]
+    num_stories: Option<usize>,
 }
 
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
@@ -152,7 +160,10 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
         "Got already processed stories"
     );
 
-    let stories = hn_api::get_hackernews_top_stories().await?;
+    let num_stories = args
+        .num_stories
+        .unwrap_or(config::config().num_titles_to_request);
+    let stories = hn_api::get_hackernews_top_stories(num_stories).await?;
 
     tracing::info!(num_stories = stories.len(), "Got top stories");
 
@@ -213,9 +224,13 @@ async fn get_summary(args: Args) -> anyhow::Result<()> {
         tracing::info!("Exported stories to export/exported_stories.json");
     }
 
-    let message = google_chat::create_message(stories.clone())?;
-    google_chat::send_message(message, &config::config().google_chat_webhook_url).await?;
-    tracing::info!("Sent message to google chat");
+    if !args.no_post {
+        let message = google_chat::create_message(stories.clone())?;
+        google_chat::send_message(message, &config::config().google_chat_webhook_url).await?;
+        tracing::info!("Sent message to google chat");
+    } else {
+        tracing::info!("Skipping google chat post (--no-post)");
+    }
 
     db::insert_stories(&db, &stories)?;
     tracing::info!(

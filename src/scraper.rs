@@ -13,10 +13,9 @@ async fn scrape_and_trim_text(story: &crate::Story, export_text: bool) -> anyhow
 
     if export_text {
         use std::io::Write;
-        let mut file = std::fs::File::create(format!("tmp/{}.txt", story.title.replace(" ", "-")))
-            .map_err(anyhow::Error::new)?;
-        file.write_all(trimmed_text.as_bytes())
-            .map_err(anyhow::Error::new)?;
+        std::fs::create_dir_all("tmp")?;
+        let mut file = std::fs::File::create(format!("tmp/{}.txt", story.title.replace(" ", "-")))?;
+        file.write_all(trimmed_text.as_bytes())?;
     }
 
     Ok(trimmed_text)

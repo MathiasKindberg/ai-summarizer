@@ -1,11 +1,11 @@
-pub(crate) async fn get_hackernews_top_stories() -> anyhow::Result<Vec<crate::Story>> {
+pub(crate) async fn get_hackernews_top_stories(
+    num_titles: usize,
+) -> anyhow::Result<Vec<crate::Story>> {
     let response = crate::CLIENT
         .get("https://hacker-news.firebaseio.com/v0/topstories.json")
         .send()
         .await?;
-    let stories: Vec<i64> = response.json::<Vec<i64>>().await?
-        [..crate::config::config().num_titles_to_request]
-        .to_vec();
+    let stories: Vec<i64> = response.json::<Vec<i64>>().await?[..num_titles].to_vec();
 
     let mut enriched_stories = Vec::with_capacity(stories.len());
 

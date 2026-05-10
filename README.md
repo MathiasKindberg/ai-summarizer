@@ -17,7 +17,9 @@ Either copy the .env.example file to the directory where the summarizer runs or 
 ### CLI arguments
 
 ```
--e, --export-text     Export the stories to json in the export directory
--r, --reset           Reset the database
--l, --log-to-console  Log to console
+-e, --export-text             Export the stories to json in the export directory
+-r, --reset                   Reset the database
+-l, --log-to-console          Log to console
+-n, --no-post                 Skip the Google Chat post (for local verification)
+    --num-stories <NUM>       Number of HN top stories to fetch and process (default: NUM_TITLES_TO_REQUEST)
 ```
