@@ -37,26 +37,28 @@ pub(crate) async fn enrich_stories(
             let id = story.id;
             let url = story.url.clone();
 
-            let trimmed_text = backoff::future::retry_notify(
-                crate::backoff::backoff_default(),
-                || async {
-                    Ok(tokio::select! {
-                        res = scrape_and_trim_text(&story, export_text) => res,
-                        _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
-                            Err(anyhow::anyhow!("Timeout when scraping story"))},
-                    }?)
-                },
-                |e, duration: std::time::Duration| {
-                    tracing::warn!(
-                        error =? e,
-                        error_at =? duration.as_secs(),
-                        title = title,
-                        id = id,
-                        url = url,
-                        "Error when scraping story, retrying"
-                    )
-                },
-            )
+            use backon::Retryable;
+
+            let trimmed_text = (|| async {
+                tokio::select! {
+                    res = scrape_and_trim_text(&story, export_text) => res,
+                    _ = tokio::time::sleep(std::time::Duration::from_secs(30)) => {
+                        Err(anyhow::anyhow!("Timeout when scraping story"))
+                    }
+                }
+            })
+            .retry(crate::backoff::backoff_default())
+            .sleep(tokio::time::sleep)
+            .notify(|e: &anyhow::Error, duration: std::time::Duration| {
+                tracing::warn!(
+                    error =? e,
+                    error_at =? duration.as_secs(),
+                    title = title,
+                    id = id,
+                    url = url,
+                    "Error when scraping story, retrying"
+                )
+            })
             .await?;
 
             story.text = Some(trimmed_text);
