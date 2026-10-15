@@ -5,5 +5,4 @@
 /tmp
 db.sqlite
 /log
-justfile
 /export

@@ -154,6 +154,12 @@ pub(crate) struct Usage {
     pub(crate) prompt_tokens: i64,
     pub(crate) completion_tokens: i64,
     pub(crate) total_tokens: i64,
+    pub(crate) completion_tokens_details: CompletionTokensDetails,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub(crate) struct CompletionTokensDetails {
+    pub(crate) reasoning_tokens: i64,
 }
 
 pub(crate) async fn enrich_story(mut story: crate::Story) -> anyhow::Result<crate::Story> {

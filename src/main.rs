@@ -125,6 +125,18 @@ async fn summarize_and_score_scraped_stories(stories: Vec<Story>) -> anyhow::Res
             .iter()
             .map(|s| s.usage.as_ref().expect("Usage").total_tokens)
             .sum(),
+        completion_tokens_details: crate::openai::CompletionTokensDetails {
+            reasoning_tokens: enriched_stories
+                .iter()
+                .map(|s| {
+                    s.usage
+                        .as_ref()
+                        .expect("Usage")
+                        .completion_tokens_details
+                        .reasoning_tokens
+                })
+                .sum(),
+        },
     };
 
     tracing::info!(
