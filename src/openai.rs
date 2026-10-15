@@ -163,7 +163,16 @@ pub(crate) struct CompletionTokensDetails {
 }
 
 pub(crate) async fn enrich_story(mut story: crate::Story) -> anyhow::Result<crate::Story> {
-    let (summary, usage) = summarize_and_score_text_categorical(&story.title).await?;
+    let text = story
+        .text
+        .as_deref()
+        .ok_or_else(|| anyhow::anyhow!("Story {} has no scraped text", story.id))?;
+    let content = format!(
+        "<title>{}</title>\n<article>\n{}\n</article>",
+        story.title, text
+    );
+
+    let (summary, usage) = summarize_and_score_text_categorical(&content).await?;
     story.summary = Some(summary.summary);
     story.ai_impact_score = Some(summary.ai_impact);
 
@@ -219,16 +228,19 @@ async fn summarize_and_score_text_categorical(
     Ok((summary, model_response.usage))
 }
 
-/// We enforce a json schema for the responses since we are working with structured data.
 #[derive(Debug, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct SummaryResponse {
     #[schemars(required)]
-    #[schemars(description = "Summary of the text")]
+    #[schemars(
+        description = "Two paragraphs: the first covers the most important points, the second adds supporting depth"
+    )]
     pub(crate) summary: Vec<String>,
 
     #[schemars(required)]
-    #[schemars(description = "An array of tuples of the form (summary, ai_impact_score)")]
+    #[schemars(
+        description = "Impact on the AI community. High: a significant AI model, research result, tool or industry development that people building with or following AI should know about. Medium: AI is a substantial part of the story but the impact is limited. Low: AI is mentioned only in passing. Zero: not about AI"
+    )]
     pub(crate) ai_impact: crate::openai::Category,
 }
 

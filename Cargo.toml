@@ -13,6 +13,7 @@ regex = "1.11"
 reqwest = { version = "0.13", features = [
     "rustls",
     "json",
+    "gzip",
 ], default-features = false }
 rusqlite = { version = "0.39", features = ["bundled"] }
 schemars = "1"

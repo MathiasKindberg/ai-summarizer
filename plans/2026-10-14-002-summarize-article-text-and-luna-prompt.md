@@ -1,6 +1,6 @@
 # Summarize the Article Text, Not the Title, and Rewrite the Prompt for gpt-6-luna
 
-**Status**: Planned
+**Status**: Implemented — code + all three env files done 2026-10-15, measured below; Droplet rollout pending
 
 Builds on `2026-10-14-001-switch-to-gpt-6-luna.md`. That plan's local test
 showed the model only ever sees the story title. Three fixes ship together
@@ -249,6 +249,45 @@ Pass criteria:
 - **Length.** Compare paragraph length with the o4-mini exports from
   2026-10-14 (scratchpad `runs/o4-mini-*.json`). Target is ~25% shorter. No
   length floor gets added either way.
+
+## Results (2026-10-15, 10:09–10:11 UTC)
+
+Three runs on the same 58 stories (`--reset --no-post --export-text`, Luna,
+medium). Run 1 is the title-only binary with the old prompt and schema, as a
+same-day baseline; runs 2 and 3 are this plan. Luna pricing $0.10 / $0.50 per
+million tokens.
+
+| Run                  | calls | prompt  | completion | reasoning | High | Medium |   Cost |
+|----------------------|------:|--------:|-----------:|----------:|-----:|-------:|-------:|
+| 1 title-only         |    58 |  11,332 |     14,695 |    10,047 |    0 |      8 | $0.0085 |
+| 2 full article       |    58 | 309,283 |     12,865 |     5,560 |    6 |     12 | $0.0374 |
+| 3 full article       |    58 | 309,283 |     12,673 |     5,290 |    7 |     10 | $0.0373 |
+
+- **Export bug gone.** 58 `tmp/<id>.txt` files, zero `No such file` errors, zero
+  retries in all three runs.
+- **Text reaches the model.** Median prompt 2,240 tokens, max 72,453 (one
+  312 KB page). Run total 309k, not 11k.
+- **Cost: passes.** $0.037 per run against o4-mini's $0.203 title-only.
+  With article text Luna reasons *less* (5.5k vs 10k reasoning tokens), so
+  output is cheaper than title-only; the whole difference is input.
+- **Two-stage variant priced from the same data** (58 title-only calls plus
+  full-article calls for the 4 posted stories: 41,970 in / 1,079 out):
+  $0.0132 per run. It saves $0.024 per run over full-article-for-all.
+- **Grounding.** The 4 exported summaries (OpenCode 2.0, LFM2.5 was cut by the
+  4-story limit, "Containment and monitoring failures…", Jev 1.14.0) contain
+  only facts present in their `tmp/<id>.txt`. The "Gemini 4 Argon" summary is
+  the title restated twice: its page (`https://deepmind.google/models/gemini/`,
+  93 KB) is an undecoded compressed response body, so the bot-wall rule
+  applied. That is a scraper bug (reqwest decompression), not a prompt issue,
+  and is out of scope here.
+- **Digest volume.** 6 and 7 Highs; 5 titles were High in both runs
+  (OpenCode 2.0, LFM2.5-24B-A2B, the AI-hacking containment story, the Claude
+  Code Desktop vulnerability, Aidlc). Both runs would have posted 4 stories.
+  Note the baseline's 0 Highs combines title-only input *and* the old rubric,
+  so it does not isolate which of the two changes moved the count.
+- **Length.** 216–367 completion tokens per posted story, two paragraphs of
+  2–3 sentences each. No length floor added.
+- 10 of 58 pages were under 500 bytes (bot walls / error pages).
 
 ## References
 
